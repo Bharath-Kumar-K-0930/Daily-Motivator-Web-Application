@@ -1,0 +1,44 @@
+Project Report: Daily Motivation Application
+
+1. Project Overview:
+The Daily Motivation application is a web-based platform designed to provide users with 
+motivational challenges, personalized profiles, and daily inspirational content. 
+It includes both frontend and backend components, integrating with Supabase for authentication and data management.
+
+2. Modules and Features:
+- Authentication Module: Handles user sign-in and sign-up (SignInPage, SignUpPage).
+- Profile Module: Manages user profile settings and preferences (ProfilePage).
+- Challenges Module: Displays various motivational challenges and their details (ChallengesPage, ChallengeDetailsPage).
+- Notifications Module: Manages user notifications and reminders (NotificationsPage).
+- Favorites Module: Allows users to save favorite challenges or content (FavoritesPage).
+- Tracker Module: Tracks user progress and activities (TrackerPage).
+- Additional Pages: HomePage, LandingPage, ExplorePage, BadgesPage, DetailsPage provide navigation and achievement tracking.
+
+3. Challenge Cards Content:
+The application includes a rich set of challenge cards organized into categories:
+- Coding Skills Cards (30, 60, 100 days)
+- Fitness Cards (30, 60, 100 days)
+- Health and Wellness Cards (30, 60, 100 days)
+- Mindfulness Cards (30, 60, 100 days)
+- Productivity Cards (30, 60, 100 days)
+- Relationship Cards (30, 60, 100 days)
+
+These cards are static HTML files providing structured challenges for users.
+
+4. Directory Structure Summary:
+- backend/: Nodejs, Backend server with Express, and PostgreSQL integration.
+- src/: Frontend React application with components, pages, context providers, models, and utilities.
+- all_challenges_cards/: Static HTML content for various challenge categories.
+- supabase/: Database migrations and scripts for Supabase integration.
+- tests/: Automated tests for API endpoints and frontend components.
+
+5. Technologies Used:
+- Frontend: React, TypeScript, Vite, Tailwind CSS, React Router, Lucide React icons.
+- Backend: Node.js, Express, TypeScript, PostgreSQL.
+- Authentication and Database: Supabase.
+- Testing: Jest, Vitest, React Testing Library.
+- Other: Axios, date-fns, Twilio for messaging, node-cron for scheduling.
+
+6. Summary:
+The Daily Motivation app is a full-stack application combining motivational content delivery with user personalization 
+and progress tracking. It leverages modern web technologies and cloud services to provide a seamless user experience.

@@ -1,0 +1,376 @@
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
+import { AuthProvider, useAuth } from '../context/AuthContext';
+import ProfilePage from '../pages/ProfilePage';
+import Sidebar from '../components/Sidebar';
+import { supabase } from '../lib/supabaseClient';
+
+// Mock react-hot-toast
+jest.mock('react-hot-toast', () => ({
+  toast: {
+    success: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
+// Mock supabase client
+jest.mock('../lib/supabaseClient', () => {
+  const mockSupabase = {
+    from: jest.fn(() => ({
+      select: jest.fn().mockReturnThis(),
+      in: jest.fn().mockResolvedValue({
+        data: [
+          {
+            id: '1',
+            title: 'Test Challenge',
+            description: 'Test Description',
+            category: 'fitness',
+            duration_days: 30,
+            difficulty: 'easy',
+          },
+        ],
+        error: null,
+      }),
+      update: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockResolvedValue({
+        data: null,
+        error: null,
+      }),
+    })),
+    storage: {
+      from: jest.fn(() => ({
+        upload: jest.fn().mockResolvedValue({
+          data: { path: 'test-path' },
+          error: null,
+        }),
+        getPublicUrl: jest.fn().mockReturnValue({
+          data: { publicUrl: 'https://test-url.com/image.jpg' },
+        }),
+      })),
+    },
+  };
+
+  return {
+    supabase: mockSupabase,
+  };
+});
+
+// Mock AuthContext
+jest.mock('../context/AuthContext', () => {
+  const originalModule = jest.requireActual('../context/AuthContext');
+  
+  return {
+    ...originalModule,
+    useAuth: jest.fn(),
+  };
+});
+
+// Test wrapper component
+const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        {children}
+      </AuthProvider>
+    </BrowserRouter>
+  );
+};
+
+// Create a combined component for testing integration
+const ProfileWithSidebar: React.FC = () => {
+  return (
+    <div className="flex">
+      <Sidebar />
+      <div className="flex-1 ml-64">
+        <ProfilePage />
+      </div>
+    </div>
+  );
+};
+
+describe('ProfilePage and Sidebar integration', () => {
+  const mockProfile = {
+    id: 'test-user-id',
+    username: 'testuser',
+    email: 'test@example.com',
+    full_name: 'Test User',
+    avatar_url: null,
+    whatsapp_number: '',
+    notification_times: ['04:00', '05:00', '06:00', '07:00', '10:00'],
+    selected_interests: [],
+  };
+
+  const mockAuthContextValue = {
+    profile: mockProfile,
+    selectedInterests: [],
+    signOut: jest.fn(),
+    user: { id: 'test-user-id' },
+    loading: false,
+  };
+
+  beforeEach(() => {
+    // Reset mocks before each test
+    jest.clearAllMocks();
+    (useAuth as jest.Mock).mockReturnValue(mockAuthContextValue);
+  });
+
+  test('Selecting interests updates Sidebar challenges', async () => {
+    // Mock the supabase query for challenges
+    const mockFrom = jest.fn(() => ({
+      select: jest.fn().mockReturnThis(),
+      in: jest.fn().mockResolvedValue({
+        data: [
+          {
+            id: '1',
+            title: 'Test Challenge',
+            description: 'Test Description',
+            category: 'fitness',
+            duration_days: 30,
+            difficulty: 'easy',
+          },
+        ],
+        error: null,
+      }),
+      update: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockResolvedValue({
+        data: null,
+        error: null,
+      }),
+    }));
+
+    (supabase.from as jest.Mock).mockImplementation(mockFrom);
+
+    render(
+      <TestWrapper>
+        <ProfileWithSidebar />
+      </TestWrapper>
+    );
+
+    // Initially no challenge card should be visible (sidebar closed or no interests)
+    expect(screen.queryByText('Challenges Based on Your Interests')).not.toBeInTheDocument();
+
+    // Find and select the fitness interest checkbox
+    const fitnessCheckbox = screen.getByRole('checkbox', { name: /fitness/i });
+    expect(fitnessCheckbox).toBeInTheDocument();
+    
+    // Click the fitness checkbox
+    fireEvent.click(fitnessCheckbox);
+
+    // Update the mock to return the selected interest
+    const updatedMockAuthContextValue = {
+      ...mockAuthContextValue,
+      selectedInterests: ['fitness'],
+      profile: {
+        ...mockProfile,
+        selected_interests: ['fitness'],
+      },
+    };
+    
+    (useAuth as jest.Mock).mockReturnValue(updatedMockAuthContextValue);
+
+    // Re-render with updated context
+    render(
+      <TestWrapper>
+        <ProfileWithSidebar />
+      </TestWrapper>
+    );
+
+    // Wait for the challenges to appear
+    await waitFor(() => {
+      expect(screen.getByText('Challenges Based on Your Interests')).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    // Check if the test challenge appears
+    await waitFor(() => {
+      expect(screen.getByText('Test Challenge')).toBeInTheDocument();
+      expect(screen.getByText('Test Description')).toBeInTheDocument();
+      expect(screen.getByText('30 days')).toBeInTheDocument();
+      expect(screen.getByText('easy')).toBeInTheDocument();
+    });
+  });
+
+  test('Deselecting interests removes challenges from Sidebar', async () => {
+    // Start with fitness interest selected
+    const initialMockAuthContextValue = {
+      ...mockAuthContextValue,
+      selectedInterests: ['fitness'],
+      profile: {
+        ...mockProfile,
+        selected_interests: ['fitness'],
+      },
+    };
+
+    (useAuth as jest.Mock).mockReturnValue(initialMockAuthContextValue);
+
+    render(
+      <TestWrapper>
+        <ProfileWithSidebar />
+      </TestWrapper>
+    );
+
+    // Wait for challenges to appear initially
+    await waitFor(() => {
+      expect(screen.getByText('Challenges Based on Your Interests')).toBeInTheDocument();
+    });
+
+    // Find and deselect the fitness checkbox
+    const fitnessCheckbox = screen.getByRole('checkbox', { name: /fitness/i });
+    fireEvent.click(fitnessCheckbox);
+
+    // Update mock to remove selected interest
+    const updatedMockAuthContextValue = {
+      ...mockAuthContextValue,
+      selectedInterests: [],
+      profile: {
+        ...mockProfile,
+        selected_interests: [],
+      },
+    };
+
+    (useAuth as jest.Mock).mockReturnValue(updatedMockAuthContextValue);
+
+    // Re-render with updated context
+    render(
+      <TestWrapper>
+        <ProfileWithSidebar />
+      </TestWrapper>
+    );
+
+    // Wait for challenges to disappear
+    await waitFor(() => {
+      expect(screen.queryByText('Challenges Based on Your Interests')).not.toBeInTheDocument();
+    });
+  });
+
+  test('Profile save updates successfully', async () => {
+    render(
+      <TestWrapper>
+        <ProfilePage />
+      </TestWrapper>
+    );
+
+    // Find the username input and update it
+    const usernameInput = screen.getByDisplayValue(mockProfile.username);
+    fireEvent.change(usernameInput, { target: { value: 'newusername' } });
+
+    // Find and click the save button
+    const saveButton = screen.getByRole('button', { name: /save changes/i });
+    fireEvent.click(saveButton);
+
+    // Wait for the save operation to complete
+    await waitFor(() => {
+      expect(supabase.from).toHaveBeenCalledWith('profiles');
+    });
+  });
+
+  test('WhatsApp number validation works correctly', async () => {
+    render(
+      <TestWrapper>
+        <ProfilePage />
+      </TestWrapper>
+    );
+
+    // Find the WhatsApp number input
+    const whatsappInput = screen.getByPlaceholderText(/\+1234567890 or 1234567890/i);
+    
+    // Enter an invalid WhatsApp number (too short)
+    fireEvent.change(whatsappInput, { target: { value: '123' } });
+    
+    // Try to save
+    const saveButton = screen.getByRole('button', { name: /save changes/i });
+    fireEvent.click(saveButton);
+
+    // Should show validation error (assuming toast.error is called)
+    await waitFor(() => {
+      expect(require('react-hot-toast').toast.error).toHaveBeenCalledWith('Please enter a valid WhatsApp number');
+    });
+  });
+
+  test('Sidebar toggles correctly', () => {
+    render(
+      <TestWrapper>
+        <Sidebar />
+      </TestWrapper>
+    );
+
+    // Find the desktop toggle button
+    const toggleButton = screen.getByRole('button');
+    expect(toggleButton).toBeInTheDocument();
+
+    // Click to toggle sidebar
+    fireEvent.click(toggleButton);
+
+    // Check if sidebar classes change (this would depend on your specific implementation)
+    // You might need to adjust this based on how you're testing the sidebar state
+  });
+
+  test('Sign out function is called correctly', () => {
+    const mockSignOut = jest.fn();
+    (useAuth as jest.Mock).mockReturnValue({
+      ...mockAuthContextValue,
+      signOut: mockSignOut,
+    });
+
+    render(
+      <TestWrapper>
+        <Sidebar />
+      </TestWrapper>
+    );
+
+    // Find and click the sign out button
+    const signOutButton = screen.getByRole('button', { name: /sign out/i });
+    fireEvent.click(signOutButton);
+
+    // Verify signOut was called
+    expect(mockSignOut).toHaveBeenCalled();
+  });
+});
+
+// Additional helper test for challenge card click
+describe('Challenge card interactions', () => {
+  const mockProfile = {
+    id: 'test-user-id',
+    username: 'testuser',
+    email: 'test@example.com',
+    selected_interests: ['fitness'],
+  };
+
+  beforeEach(() => {
+    (useAuth as jest.Mock).mockReturnValue({
+      profile: mockProfile,
+      selectedInterests: ['fitness'],
+      signOut: jest.fn(),
+      user: { id: 'test-user-id' },
+      loading: false,
+    });
+
+    // Mock window.location.href
+    delete (window as any).location;
+    (window as any).location = { href: '' };
+  });
+
+  test('Challenge card click navigates correctly', async () => {
+    render(
+      <TestWrapper>
+        <Sidebar />
+      </TestWrapper>
+    );
+
+    // Wait for challenge to appear
+    await waitFor(() => {
+      expect(screen.getByText('Test Challenge')).toBeInTheDocument();
+    });
+
+    // Click on the challenge card
+    const challengeCard = screen.getByText('Test Challenge').closest('div');
+    if (challengeCard) {
+      fireEvent.click(challengeCard);
+    }
+
+    // Check if navigation occurred
+    expect(window.location.href).toContain('/challenge-details');
+    expect(window.location.href).toContain('interest=fitness');
+    expect(window.location.href).toContain('duration=30');
+  });
+});

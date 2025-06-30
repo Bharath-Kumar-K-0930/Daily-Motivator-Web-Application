@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: 59, 130, 246; /* blue-500 */
+  --color-secondary: 139, 92, 246; /* purple-500 */
+  --color-accent: 249, 115, 22; /* orange-500 */
+  --color-success: 34, 197, 94; /* green-500 */
+  --color-warning: 234, 179, 8; /* yellow-500 */
+  --color-error: 239, 68, 68; /* red-500 */
+}
+
+@layer base {
+  body {
+    @apply font-sans text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-900 transition-colors duration-300;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-bold leading-tight;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .btn-primary {
+    @apply btn bg-blue-500 hover:bg-blue-600 text-white focus:ring-blue-400;
+  }
+
+  .btn-secondary {
+    @apply btn bg-purple-500 hover:bg-purple-600 text-white focus:ring-purple-400;
+  }
+
+  .btn-accent {
+    @apply btn bg-orange-500 hover:bg-orange-600 text-white focus:ring-orange-400;
+  }
+
+  .card {
+    @apply bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 transition-all duration-300;
+  }
+
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .quote-card {
+    @apply card hover:shadow-xl transition-shadow duration-300 overflow-hidden;
+  }
+
+  .quote-card-gradient {
+    @apply bg-gradient-to-br from-blue-500/80 to-purple-600/80 text-white;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Font settings */
+.font-sans {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: 'Manrope', sans-serif;
+}

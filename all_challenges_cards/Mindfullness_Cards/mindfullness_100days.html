@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>100-Day Mindfulness Challenge</title>
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --primary-dark: #2E7D32;
+            --primary-light: #C8E6C9;
+            --accent: #FF5722;
+            --text: #333333;
+            --background: #e8f5e9;
+            --card-bg: #ffffff;
+            --disabled: #bdbdbd;
+            --success: #388E3C;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            padding-bottom: 100px;
+        }
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            text-align: center;
+            padding: 60px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .dashboard {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        .accent-text {
+            color: var(--accent);
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+        .progress-section {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background-color: var(--primary);
+        }
+        .progress-bar-container {
+            width: 100%;
+            height: 30px;
+            background-color: #eee;
+            border-radius: 15px;
+            margin: 20px 0;
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            border-radius: 15px;
+            transition: width 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0.1) 25%,
+                rgba(255, 255, 255, 0.2) 50%,
+                rgba(255, 255, 255, 0.1) 75%
+            );
+            width: 200%;
+            animation: shimmer 2s infinite linear;
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(50%); }
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background-color: var(--primary-light);
+            padding: 20px 25px;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 150px;
+            flex: 1;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+            border-bottom: 3px solid var(--primary);
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-card h3 {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            color: var(--primary-dark);
+        }
+        .challenges-section {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        .challenges-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background-color: var(--accent);
+        }
+        .day-selector {
+            display: none;
+        }
+        .day-button {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f5f5f5;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .day-button:not(.locked):hover {
+            background-color: var(--primary-light);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+        }
+        .day-button.completed {
+            background-color: var(--primary);
+            color: white;
+        }
+        .day-button.completed::after {
+            content: '✓';
+            position: absolute;
+            top: -5px;
+            right: -2px;
+            background-color: var(--success);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+        .day-button.current {
+            border: 3px solid var(--accent);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 87, 34, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0); }
+        }
+        .day-button.locked {
+            background-color: var(--disabled);
+            cursor: not-allowed;
+            color: #888;
+            opacity: 0.7;
+        }
+        .challenge-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid var(--primary);
+            transition: transform 0.3s ease;
+            display: block;
+        }
+        .challenge-card:hover {
+            transform: translateY(-5px);
+        }
+        .challenge-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .challenge-card h3 {
+            font-size: 1.5rem;
+            color: var(--primary-dark);
+            margin: 0;
+        }
+        .challenge-card p {
+            margin-bottom: 20px;
+            line-height: 1.7;
+        }
+        .challenge-card .challenge-tips {
+            background-color: var(--primary-light);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 3px solid var(--primary);
+        }
+        .challenge-card .challenge-tips h4 {
+            margin-bottom: 10px;
+            color: var(--primary-dark);
+        }
+        .btn {
+            background: linear-gradient(to right, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(120deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.2), rgba(255,255,255,0) 70%);
+            transform: translateX(-100%);
+        }
+        .btn:hover {
+            background: linear-gradient(to right, var(--primary-dark), var(--primary));
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(76, 175, 80, 0.4);
+        }
+        .btn:hover::after {
+            animation: shine 1.5s ease-out infinite;
+        }
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            20%, 100% { transform: translateX(100%); }
+        }
+        .btn:active {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(76, 175, 80, 0.4);
+        }
+        .btn-disabled {
+            background: linear-gradient(to right, var(--success), var(--primary-dark));
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+        .btn-disabled:hover {
+            background: linear-gradient(to right, var(--success), var(--primary-dark));
+            transform: none;
+            box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+        }
+        .badge-container {
+            text-align: center;
+            margin-top: 40px;
+            display: none;
+        }
+        .badge-container.visible {
+            display: block;
+            animation: fadeIn 1s;
+        }
+        .badge {
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .streak-flame {
+            color: var(--accent);
+            font-size: 1.2em;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            animation: modalFade 0.3s;
+        }
+        @keyframes modalFade {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #777;
+        }
+        .modal-close:hover {
+            color: var(--accent);
+        }
+        .completed-badge {
+            width: 100%;
+            max-width: 300px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><span class="accent-text">100-Day</span> Mindfulness Challenge</h1>
+            <p>Enhance your mindfulness with daily meditation and awareness exercises</p>
+        </div>
+    </header>
+    <div class="container dashboard">
+        <section class="progress-section">
+            <h2>Your Progress</h2>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar">0%</div>
+            </div>
+            <div class="stats">
+                <div class="stat-card">
+                    <h3 id="completedCount">0</h3>
+                    <p>Days Completed</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="currentStreak">0</h3>
+                    <p>Current Streak <span class="streak-flame">🔥</span></p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="remainingCount">100</h3>
+                    <p>Days Remaining</p>
+                </div>
+            </div>
+        </section>
+        <section class="challenges-section">
+            <h2>Daily Challenges</h2>
+            <button id="dailyChallengesButton" class="btn" style="user-select:none; margin-bottom: 10px;">
+              All challenges are displayed below. Complete them in order to track your progress.
+            </button>
+            <div class="day-selector" id="daySelector" style="display:none;">
+                <!-- Days will be dynamically generated -->
+            </div>
+            <div id="challengeCards" style="display:none;">
+                <!-- Challenge cards will be dynamically generated -->
+            </div>
+        </section>
+        <section class="badge-container" id="badgeContainer">
+            <h2>Congratulations! You've Completed the 100-Day Challenge!</h2>
+            <img src="/api/placeholder/300/300" alt="Achievement Badge" class="badge" id="achievementBadge" />
+            <p>You've successfully completed all 100 days of the Mindfulness Challenge!</p>
+            <button class="btn" id="downloadBadgeBtn">Download Your Badge</button>
+        </section>
+    </div>
+    <div class="modal" id="completionModal">
+        <div class="modal-content">
+            <span class="modal-close" id="modalClose">&times;</span>
+            <h2>Challenge Complete!</h2>
+            <p>You've completed today's challenge. Keep up the good work!</p>
+            <button class="btn" id="closeModalBtn">Continue</button>
+        </div>
+    </div>
+    <div class="modal" id="badgeModal">
+        <div class="modal-content">
+            <span class="modal-close" id="badgeModalClose">&times;</span>
+            <h2>Challenge Completed!</h2>
+            <p>Congratulations on completing the 100-Day Mindfulness Challenge!</p>
+            <img src="/api/placeholder/300/300" alt="Completion Badge" class="completed-badge" />
+            <button class="btn" id="downloadFinalBadgeBtn">Download Badge</button>
+        </div>
+    </div>
+    <script>
+        const challenges = [
+            { day: 1, title: "Mindful Breathing", description: "Focus on your breath for 5 minutes.", tips: "Breathe deeply and slowly." },
+            { day: 2, title: "Body Scan Meditation", description: "Scan your body for tension and relax.", tips: "Move your attention slowly through your body." },
+            { day: 3, title: "Gratitude Practice", description: "Write down three things you are grateful for.", tips: "Be specific and sincere." },
+            { day: 4, title: "Mindful Eating", description: "Eat a meal slowly and savor each bite.", tips: "Notice textures and flavors." },
+            { day: 5, title: "Nature Walk", description: "Take a walk and notice the sights and sounds.", tips: "Stay present and observe without judgment." },
+            { day: 6, title: "Loving-Kindness Meditation", description: "Send kind thoughts to yourself and others.", tips: "Repeat phrases like 'May you be happy'." },
+            { day: 7, title: "Mindful Listening", description: "Listen carefully to sounds around you.", tips: "Focus fully on the sounds without distraction." },
+            { day: 8, title: "Journaling", description: "Write about your thoughts and feelings.", tips: "Be honest and non-judgmental." },
+            { day: 9, title: "Mindful Stretching", description: "Stretch your body slowly and mindfully.", tips: "Pay attention to sensations." },
+            { day: 10, title: "Meditation for Stress Relief", description: "Practice a guided meditation to reduce stress.", tips: "Find a quiet place and focus on relaxation." },
+            { day: 11, title: "Mindful Walking", description: "Walk slowly and notice each step.", tips: "Feel your feet touching the ground." },
+            { day: 12, title: "Visualization", description: "Visualize a peaceful place.", tips: "Engage all your senses." },
+            { day: 13, title: "Mindful Pause", description: "Take a moment to pause and breathe deeply.", tips: "Use this to reset your mind." },
+            { day: 14, title: "Self-Compassion", description: "Practice kindness towards yourself.", tips: "Speak gently and forgive mistakes." },
+            { day: 15, title: "Mindful Observation", description: "Observe an object carefully.", tips: "Notice details you usually miss." },
+            { day: 16, title: "Breath Counting", description: "Count your breaths up to 10 and repeat.", tips: "Return to one if distracted." },
+            { day: 17, title: "Mindful Movement", description: "Engage in slow, deliberate movements.", tips: "Focus on how your body feels." },
+            { day: 18, title: "Gratitude Letter", description: "Write a letter of thanks to someone.", tips: "Express your appreciation fully." },
+            { day: 19, title: "Mindful Technology Use", description: "Use your devices with intention.", tips: "Avoid multitasking and distractions." },
+            { day: 20, title: "Meditation for Sleep", description: "Practice a meditation to help you sleep.", tips: "Focus on relaxation and letting go." },
+            { day: 21, title: "Mindful Journaling", description: "Write about your mindfulness journey.", tips: "Reflect on your experiences." },
+            { day: 22, title: "Mindful Smiling", description: "Smile gently and notice the effect.", tips: "Feel the positive energy." },
+            { day: 23, title: "Mindful Gratitude Walk", description: "Walk and think of things you appreciate.", tips: "Let gratitude fill your mind." },
+            { day: 24, title: "Mindful Listening to Music", description: "Listen to music attentively.", tips: "Notice instruments and lyrics." },
+            { day: 25, title: "Mindful Cleaning", description: "Clean a space with full attention.", tips: "Focus on the task, not the outcome." },
+            { day: 26, title: "Mindful Breathing Breaks", description: "Take short breathing breaks throughout the day.", tips: "Use these to stay centered." },
+            { day: 27, title: "Mindful Reading", description: "Read slowly and attentively.", tips: "Notice your reactions and thoughts." },
+            { day: 28, title: "Mindful Cooking", description: "Cook a meal with full attention.", tips: "Enjoy the process and smells." },
+            { day: 29, title: "Mindful Touch", description: "Notice textures and sensations.", tips: "Use your hands or other senses." },
+            { day: 30, title: "Mindful Affirmations", description: "Repeat positive affirmations.", tips: "Believe in the words you say." },
+            { day: 31, title: "Mindful Walking in Nature", description: "Walk outdoors and connect with nature.", tips: "Notice colors, sounds, and smells." },
+            { day: 32, title: "Mindful Pause Before Eating", description: "Pause before meals to appreciate food.", tips: "Express gratitude." },
+            { day: 33, title: "Mindful Stretching Breaks", description: "Take stretching breaks during the day.", tips: "Release tension and improve posture." },
+            { day: 34, title: "Mindful Journaling for Emotions", description: "Write about your emotions mindfully.", tips: "Observe without judgment." },
+            { day: 35, title: "Mindful Breathing for Anxiety", description: "Use breathing to calm anxiety.", tips: "Focus on slow, deep breaths." },
+            { day: 36, title: "Mindful Observation of Nature", description: "Observe plants, animals, or weather.", tips: "Be curious and open." },
+            { day: 37, title: "Mindful Body Awareness", description: "Notice sensations in your body.", tips: "Stay present and curious." },
+            { day: 38, title: "Mindful Listening to Others", description: "Listen fully without interrupting.", tips: "Be present and empathetic." },
+            { day: 39, title: "Mindful Self-Care", description: "Engage in self-care activities mindfully.", tips: "Focus on what feels good." },
+            { day: 40, title: "Mindful Breathing for Focus", description: "Use breath to improve concentration.", tips: "Return to breath when distracted." },
+            { day: 41, title: "Mindful Walking Meditation", description: "Combine walking with meditation.", tips: "Focus on each step and breath." },
+            { day: 42, title: "Mindful Journaling for Goals", description: "Write about your goals mindfully.", tips: "Clarify your intentions." },
+            { day: 43, title: "Mindful Eating for Health", description: "Choose healthy foods mindfully.", tips: "Notice hunger and fullness cues." },
+            { day: 44, title: "Mindful Breathing for Relaxation", description: "Use breath to relax your body.", tips: "Slow and deep breaths help." },
+            { day: 45, title: "Mindful Movement for Energy", description: "Move mindfully to boost energy.", tips: "Notice how movement affects you." },
+            { day: 46, title: "Mindful Listening to Nature", description: "Listen to natural sounds.", tips: "Focus on birds, wind, or water." },
+            { day: 47, title: "Mindful Journaling for Gratitude", description: "Write about things you appreciate.", tips: "Cultivate a grateful mindset." },
+            { day: 48, title: "Mindful Breathing for Sleep", description: "Use breath to prepare for sleep.", tips: "Calm your mind and body." },
+            { day: 49, title: "Mindful Walking for Stress Relief", description: "Walk mindfully to reduce stress.", tips: "Focus on breath and steps." },
+            { day: 50, title: "Mindful Self-Reflection", description: "Reflect on your thoughts and feelings.", tips: "Observe without judgment." },
+            { day: 51, title: "Mindful Breathing for Pain Relief", description: "Use breath to manage pain.", tips: "Focus on breath and relaxation." },
+            { day: 52, title: "Mindful Movement for Flexibility", description: "Move to improve flexibility mindfully.", tips: "Stretch gently and breathe." },
+            { day: 53, title: "Mindful Listening to Music for Relaxation", description: "Listen to calming music mindfully.", tips: "Focus on sounds and feelings." },
+            { day: 54, title: "Mindful Journaling for Stress", description: "Write about stress mindfully.", tips: "Observe triggers and reactions." },
+            { day: 55, title: "Mindful Breathing for Anger Management", description: "Use breath to calm anger.", tips: "Pause and breathe deeply." },
+            { day: 56, title: "Mindful Movement for Balance", description: "Practice balance exercises mindfully.", tips: "Focus on stability and control." },
+            { day: 57, title: "Mindful Walking for Gratitude", description: "Walk and think of things you appreciate.", tips: "Let gratitude fill your mind." },
+            { day: 58, title: "Mindful Journaling for Happiness", description: "Write about things that make you happy.", tips: "Focus on positive experiences." },
+            { day: 59, title: "Mindful Breathing for Calm", description: "Use breath to find calm.", tips: "Slow, deep breaths help." },
+            { day: 60, title: "Mindful Movement for Strength", description: "Move mindfully to build strength.", tips: "Engage muscles with intention." },
+            { day: 61, title: "Mindful Listening to Others for Empathy", description: "Listen to understand others.", tips: "Be present and open-hearted." },
+            { day: 62, title: "Mindful Journaling for Self-Discovery", description: "Write to explore yourself.", tips: "Be honest and curious." },
+            { day: 63, title: "Mindful Breathing for Energy", description: "Use breath to boost energy.", tips: "Inhale deeply and exhale fully." },
+            { day: 64, title: "Mindful Movement for Relaxation", description: "Move to relax your body and mind.", tips: "Breathe and move slowly." },
+            { day: 65, title: "Mindful Walking for Focus", description: "Walk mindfully to improve focus.", tips: "Pay attention to each step." },
+            { day: 66, title: "Mindful Journaling for Motivation", description: "Write about what motivates you.", tips: "Clarify your goals." },
+            { day: 67, title: "Mindful Breathing for Anxiety Relief", description: "Use breath to ease anxiety.", tips: "Focus on slow, steady breaths." },
+            { day: 68, title: "Mindful Movement for Posture", description: "Move to improve posture mindfully.", tips: "Engage your core and back." },
+            { day: 69, title: "Mindful Listening to Nature Sounds", description: "Listen to sounds of nature.", tips: "Be present and relaxed." },
+            { day: 70, title: "Mindful Journaling for Creativity", description: "Write to spark creativity.", tips: "Let your thoughts flow freely." },
+            { day: 71, title: "Mindful Breathing for Focus and Calm", description: "Use breath to balance focus and calm.", tips: "Breathe deeply and evenly." },
+            { day: 72, title: "Mindful Movement for Energy and Strength", description: "Move mindfully to energize and strengthen.", tips: "Engage your whole body." },
+            { day: 73, title: "Mindful Walking for Relaxation and Stress Relief", description: "Walk mindfully to relax and reduce stress.", tips: "Focus on breath and surroundings." },
+            { day: 74, title: "Mindful Journaling for Emotional Balance", description: "Write to balance your emotions.", tips: "Observe feelings without judgment." },
+            { day: 75, title: "Mindful Breathing for Grounding", description: "Use breath to feel grounded.", tips: "Focus on the present moment." },
+            { day: 76, title: "Mindful Movement for Flexibility and Balance", description: "Move to improve flexibility and balance.", tips: "Stretch gently and breathe." },
+            { day: 77, title: "Mindful Listening to Music for Focus", description: "Listen to music mindfully to improve focus.", tips: "Notice rhythms and melodies." },
+            { day: 78, title: "Mindful Journaling for Self-Compassion", description: "Write with kindness towards yourself.", tips: "Be gentle and forgiving." },
+            { day: 79, title: "Mindful Breathing for Relaxation and Sleep", description: "Use breath to relax and prepare for sleep.", tips: "Slow, deep breaths help." },
+            { day: 80, title: "Mindful Movement for Strength and Posture", description: "Move mindfully to build strength and improve posture.", tips: "Engage muscles and breathe." },
+            { day: 81, title: "Mindful Walking for Gratitude and Joy", description: "Walk and focus on gratitude and joy.", tips: "Let positive feelings fill you." },
+            { day: 82, title: "Mindful Journaling for Clarity", description: "Write to gain clarity on your thoughts.", tips: "Be honest and open." },
+            { day: 83, title: "Mindful Breathing for Energy and Calm", description: "Use breath to balance energy and calm.", tips: "Breathe deeply and evenly." },
+            { day: 84, title: "Mindful Movement for Relaxation and Strength", description: "Move to relax and strengthen your body.", tips: "Breathe and engage muscles." },
+            { day: 85, title: "Mindful Listening to Nature for Peace", description: "Listen to nature sounds for peace.", tips: "Be present and calm." },
+            { day: 86, title: "Mindful Journaling for Gratitude and Happiness", description: "Write about gratitude and happiness.", tips: "Focus on positive experiences." },
+            { day: 87, title: "Mindful Breathing for Focus and Relaxation", description: "Use breath to improve focus and relaxation.", tips: "Breathe slowly and deeply." },
+            { day: 88, title: "Mindful Movement for Energy and Flexibility", description: "Move mindfully to boost energy and flexibility.", tips: "Stretch and breathe." },
+            { day: 89, title: "Mindful Walking for Mind-Body Connection", description: "Walk mindfully to connect mind and body.", tips: "Focus on breath and movement." },
+            { day: 90, title: "Mindful Journaling for Emotional Healing", description: "Write to heal emotional wounds.", tips: "Be gentle and patient." },
+            { day: 91, title: "Mindful Breathing for Anxiety and Stress", description: "Use breath to ease anxiety and stress.", tips: "Focus on slow, steady breaths." },
+            { day: 92, title: "Mindful Movement for Posture and Balance", description: "Move mindfully to improve posture and balance.", tips: "Engage your core and back." },
+            { day: 93, title: "Mindful Listening to Music for Relaxation and Joy", description: "Listen to music mindfully for relaxation and joy.", tips: "Notice rhythms and feelings." },
+            { day: 94, title: "Mindful Journaling for Self-Discovery and Growth", description: "Write to explore yourself and grow.", tips: "Be honest and open." },
+            { day: 95, title: "Mindful Breathing for Grounding and Centering", description: "Use breath to feel grounded and centered.", tips: "Focus on the present moment." },
+            { day: 96, title: "Mindful Movement for Strength and Flexibility", description: "Move mindfully to build strength and flexibility.", tips: "Breathe and engage muscles." },
+            { day: 97, title: "Mindful Walking for Peace and Calm", description: "Walk mindfully to find peace and calm.", tips: "Focus on breath and surroundings." },
+            { day: 98, title: "Mindful Journaling for Gratitude and Peace", description: "Write about gratitude and peace.", tips: "Focus on positive feelings." },
+            { day: 99, title: "Mindful Breathing for Relaxation and Healing", description: "Use breath to relax and heal.", tips: "Breathe deeply and slowly." },
+            { day: 100, title: "Reflect on Your Mindfulness Journey", description: "Celebrate your progress and growth.", tips: "Be proud and motivated." }
+        ];
+        let currentDay = 1;
+        let completedDays = [];
+        let currentStreak = 0;
+        let lastCompletedDate = null;
+        const progressBar = document.getElementById('progressBar');
+        const completedCount = document.getElementById('completedCount');
+        const remainingCount = document.getElementById('remainingCount');
+        const streakCount = document.getElementById('currentStreak');
+        const daySelector = document.getElementById('daySelector');
+        const challengeCards = document.getElementById('challengeCards');
+        const badgeContainer = document.getElementById('badgeContainer');
+        const completionModal = document.getElementById('completionModal');
+        const badgeModal = document.getElementById('badgeModal');
+        const modalClose = document.getElementById('modalClose');
+        const badgeModalClose = document.getElementById('badgeModalClose');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const downloadBadgeBtn = document.getElementById('downloadBadgeBtn');
+        const downloadFinalBadgeBtn = document.getElementById('downloadFinalBadgeBtn');
+        function initApp() {
+            loadUserData();
+            createDayButtons();
+            createChallengeCards();
+            updateStats();
+            checkForCompletion();
+            modalClose.addEventListener('click', closeModal);
+            badgeModalClose.addEventListener('click', closeBadgeModal);
+            closeModalBtn.addEventListener('click', closeModal);
+            downloadBadgeBtn.addEventListener('click', downloadBadge);
+            downloadFinalBadgeBtn.addEventListener('click', downloadBadge);
+            const dailyChallengesButton = document.getElementById('dailyChallengesButton');
+            const challengeCardsDiv = document.getElementById('challengeCards');
+            if (dailyChallengesButton && challengeCardsDiv) {
+                dailyChallengesButton.addEventListener('click', function() {
+                    if (challengeCardsDiv.style.display === 'none' || challengeCardsDiv.style.display === '') {
+                        challengeCardsDiv.style.display = 'block';
+                        dailyChallengesButton.textContent = "Hide challenges";
+                    } else {
+                        challengeCardsDiv.style.display = 'none';
+                        dailyChallengesButton.textContent = "All challenges are displayed below. Complete them in order to track your progress.";
+                    }
+                });
+            }
+        }
+        function loadUserData() {
+            const savedData = localStorage.getItem('mindfullnessChallengeData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                completedDays = data.completedDays || [];
+                currentStreak = data.currentStreak || 0;
+                lastCompletedDate = data.lastCompletedDate ? new Date(data.lastCompletedDate) : null;
+                if (completedDays.length > 0) {
+                    currentDay = Math.min(completedDays.length + 1, 100);
+                }
+            }
+        }
+        function saveUserData() {
+            const data = {
+                completedDays: completedDays,
+                currentStreak: currentStreak,
+                lastCompletedDate: lastCompletedDate
+            };
+            localStorage.setItem('mindfullnessChallengeData', JSON.stringify(data));
+        }
+        function createDayButtons() {
+            daySelector.innerHTML = '';
+            for (let i = 1; i <= 100; i++) {
+                const dayButton = document.createElement('div');
+                dayButton.classList.add('day-button');
+                dayButton.textContent = i;
+                if (completedDays.includes(i)) {
+                    dayButton.classList.add('completed');
+                }
+                if (i === currentDay) {
+                    dayButton.classList.add('current');
+                }
+                daySelector.appendChild(dayButton);
+            }
+        }
+        function createChallengeCards() {
+            challengeCards.innerHTML = '';
+            challenges.forEach(challenge => {
+                const card = document.createElement('div');
+                card.classList.add('challenge-card');
+                card.id = `challenge-${challenge.day}`;
+                const isCompleted = completedDays.includes(challenge.day);
+                card.innerHTML = `
+                    <h3>Day ${challenge.day}: ${challenge.title}</h3>
+                    <p>${challenge.description}</p>
+                    <div class="challenge-tips">
+                        <h4>Tips for Success</h4>
+                        <p>${challenge.tips}</p>
+                    </div>
+                    <button class="btn ${isCompleted ? 'btn-disabled' : ''}" id="complete-${challenge.day}" ${isCompleted ? 'disabled' : ''}>
+                        ${isCompleted ? 'Completed ✓' : 'Mark as Complete'}
+                    </button>
+                    ${isCompleted ? `<button class="btn" id="uncheck-${challenge.day}" style="margin-left: 10px;">Uncheck</button>` : ''}
+                `;
+                challengeCards.appendChild(card);
+                const completeBtn = document.getElementById(`complete-${challenge.day}`);
+                if (completeBtn && !isCompleted) {
+                    completeBtn.addEventListener('click', () => completeChallenge(challenge.day));
+                }
+                const uncheckBtn = document.getElementById(`uncheck-${challenge.day}`);
+                if (uncheckBtn) {
+                    uncheckBtn.addEventListener('click', () => uncheckChallenge(challenge.day));
+                }
+            });
+        }
+        function uncheckChallenge(day) {
+            const index = completedDays.indexOf(day);
+            if (index !== -1) {
+                completedDays.splice(index, 1);
+                if (day < currentDay) {
+                    currentDay = day;
+                }
+                saveUserData();
+                updateStats();
+                createDayButtons();
+                createChallengeCards();
+            }
+        }
+        function completeChallenge(day) {
+            if (!completedDays.includes(day)) {
+                createConfetti();
+                completedDays.push(day);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                if (lastCompletedDate) {
+                    const yesterday = new Date(today);
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    if (lastCompletedDate.getTime() === yesterday.getTime()) {
+                        currentStreak++;
+                    } else if (lastCompletedDate.getTime() < yesterday.getTime()) {
+                        currentStreak = 1;
+                    }
+                } else {
+                    currentStreak = 1;
+                }
+                lastCompletedDate = today;
+                if (day === currentDay) {
+                    currentDay = Math.min(currentDay + 1, 100);
+                }
+                saveUserData();
+                updateStats();
+                createDayButtons();
+                createChallengeCards();
+                showCompletionModal();
+                checkForCompletion();
+            }
+        }
+        function createConfetti() {
+            const confettiCount = 100;
+            const colors = ['#4CAF50', '#FF5722', '#C8E6C9', '#FF7043', '#4CAF50'];
+            const confettiContainer = document.createElement('div');
+            confettiContainer.style.position = 'fixed';
+            confettiContainer.style.top = '0';
+            confettiContainer.style.left = '0';
+            confettiContainer.style.width = '100%';
+            confettiContainer.style.height = '100%';
+            confettiContainer.style.pointerEvents = 'none';
+            confettiContainer.style.zIndex = '9999';
+            document.body.appendChild(confettiContainer);
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.position = 'absolute';
+                confetti.style.width = `${Math.random() * 10 + 5}px`;
+                confetti.style.height = `${Math.random() * 5 + 5}px`;
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.borderRadius = `${Math.random() > 0.5 ? '50%' : '0'}`;
+                confetti.style.top = '0';
+                confetti.style.left = `${Math.random() * 100}%`;
+                confetti.style.opacity = '1';
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                confettiContainer.appendChild(confetti);
+                const animation = confetti.animate(
+                    [
+                        { transform: `translate(0, 0) rotate(${Math.random() * 360}deg)`, opacity: 1 },
+                        { transform: `translate(${Math.random() * 100 - 50}px, ${window.innerHeight}px) rotate(${Math.random() * 360}deg)`, opacity: 0 }
+                    ],
+                    {
+                        duration: Math.random() * 3000 + 1500,
+                        easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)'
+                    }
+                );
+                animation.onfinish = () => {
+                    confetti.remove();
+                    if (confettiContainer.childElementCount === 0) {
+                        confettiContainer.remove();
+                    }
+                };
+            }
+        }
+        function updateStats() {
+            const completed = completedDays.length;
+            const remaining = 100 - completed;
+            const progress = Math.round((completed / 100) * 100);
+            completedCount.textContent = completed;
+            remainingCount.textContent = remaining;
+            streakCount.textContent = currentStreak;
+            progressBar.style.width = `${progress}%`;
+            progressBar.textContent = `${progress}%`;
+        }
+        function checkForCompletion() {
+            if (completedDays.length === 100) {
+                badgeContainer.classList.add('visible');
+                showBadgeModal();
+            }
+        }
+        function showCompletionModal() {
+            completionModal.classList.add('active');
+        }
+        function closeModal() {
+            completionModal.classList.remove('active');
+        }
+        function showBadgeModal() {
+            badgeModal.classList.add('active');
+        }
+        function closeBadgeModal() {
+            badgeModal.classList.remove('active');
+        }
+        function downloadBadge() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 500;
+            canvas.height = 500;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#4CAF50';
+            ctx.beginPath();
+            ctx.arc(250, 250, 240, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.arc(250, 250, 220, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(250, 180, 60, Math.PI, Math.PI * 2);
+            ctx.fillRect(190, 180, 120, 20);
+            ctx.fillRect(240, 200, 20, 100);
+            ctx.fillRect(210, 300, 80, 10);
+            ctx.fill();
+            ctx.fillStyle = '#333333';
+            ctx.font = 'bold 30px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('ACHIEVEMENT UNLOCKED', 250, 380);
+            ctx.font = 'bold 24px Arial';
+            ctx.fillText('100-Day Mindfulness', 250, 410);
+            ctx.fillText('Challenge Completed', 250, 440);
+            const today = new Date();
+            const dateString = today.toLocaleDateString();
+            ctx.font = '18px Arial';
+            ctx.fillText(dateString, 250, 470);
+            const dataURL = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = 'mindfulness-challenge-badge.png';
+            link.href = dataURL;
+            link.click();
+        }
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>

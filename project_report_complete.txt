@@ -1,0 +1,97 @@
+Complete Project Report: Daily Motivation Application
+
+Synopsis (1 page)
+The Daily Motivation application is a comprehensive web-based platform designed to inspire and motivate users through personalized challenges, progress tracking, and daily inspirational content. It integrates a modern frontend built with React and TypeScript, a robust backend using Node.js, Express, MongoDB, and PostgreSQL, and cloud services via Supabase for authentication and data management. The application offers various challenge categories such as coding skills, fitness, mindfulness, productivity, and relationships, each with structured challenge cards spanning 30, 60, and 100 days. This report details the system's design, implementation, testing, and deployment, providing a complete overview of the project.
+
+1. Introduction
+1.1 System Definition
+The Daily Motivation application is a full-stack motivational platform aimed at helping users improve their lives by engaging in daily challenges tailored to their interests. It provides user authentication, personalized profiles, challenge tracking, notifications, and inspirational content to foster continuous growth and well-being.
+
+1.2 Project Description
+This project combines frontend and backend technologies to deliver a seamless user experience. The frontend is developed using React with TypeScript, styled with Tailwind CSS, and uses React Router for navigation. The backend is built with Node.js and Express, connecting to MongoDB for user profile storage and PostgreSQL for scheduling notifications. Supabase is used for authentication and database management. The system supports multiple challenge categories, user progress tracking, and WhatsApp notifications for reminders.
+
+2. System Study
+2.1 Existing System
+Currently, many motivational platforms lack personalized challenge tracking and integration with messaging services for reminders. Users often struggle to maintain motivation due to generic content and lack of progress visualization.
+
+2.2 Proposed System
+The Daily Motivation app proposes a personalized, interactive system that offers tailored challenges, progress tracking, and timely notifications via WhatsApp. It integrates multiple technologies to provide a cohesive user experience.
+
+2.3 Data Flow Diagram
+The data flow diagram illustrates the interaction between the user, frontend application, backend APIs, databases, and notification services. Users interact with the frontend to authenticate, select challenges, and track progress. The frontend communicates with backend APIs to fetch and update user data stored in MongoDB and PostgreSQL. Notification services send reminders via WhatsApp based on scheduled notifications.
+
+2.4 ER Diagram
+The entity-relationship diagram depicts the relationships between key entities such as User Profiles, Challenges, User Challenge Progress, Notifications, and Logs. User Profiles store personal information and preferences. Challenges define the motivational tasks. User Challenge Progress tracks individual user engagement. Notifications manage scheduled and sent messages.
+
+3. System Configuration
+3.1 Hardware Configuration
+- Client devices: Desktop, tablet, and mobile devices with internet connectivity.
+- Server: Cloud-hosted server with Node.js runtime, MongoDB, and PostgreSQL databases.
+
+3.2 Software Configuration
+- Operating System: Cross-platform support (Windows, macOS, Linux).
+- Frontend: React, TypeScript, Tailwind CSS.
+- Backend: Node.js, Express, MongoDB, PostgreSQL.
+- Database Management: Supabase.
+- Testing: Jest, Vitest.
+
+4. Details of Software
+4.1 Overview of Front End
+The frontend is built with React and TypeScript, providing a responsive UI with Tailwind CSS styling. It includes pages for user authentication, profile management, challenge browsing, progress tracking, and notifications. State management is handled via React Context API. The HomePage component fetches active challenges from Supabase and displays progress and daily tasks. Users can select interests and challenge durations, linking to static HTML challenge cards.
+
+4.2 Overview of Back End
+The backend uses Express to expose RESTful APIs for user profile management, challenge progress, and notification scheduling. It connects to MongoDB for storing user profiles and PostgreSQL for managing scheduled notifications. Multer is used for handling profile picture uploads. Key API endpoints include profile picture upload/retrieval, WhatsApp message sending and scheduling, and user profile CRUD operations.
+
+5. System Design
+5.1 Architectural Design
+The system follows a client-server architecture with a React frontend communicating with an Express backend. The backend interfaces with MongoDB and PostgreSQL databases and integrates with external services like WhatsApp for notifications.
+
+5.2 Input Design
+User inputs include authentication credentials, profile details, challenge selections, and notification preferences. Inputs are validated both client-side and server-side.
+
+5.3 Output Design
+Outputs include personalized challenge displays, progress bars, daily inspirational quotes, and notification messages sent via WhatsApp.
+
+5.4 Database Design
+The database schema includes collections/tables for user profiles, challenges, user challenge progress, notifications, and logs. Relationships are managed between users and their challenges and notifications.
+
+6. Source Code
+Key backend code snippets:
+- Express server setup with middleware for CORS and JSON parsing.
+- MongoDB connection using Mongoose.
+- PostgreSQL connection pool for scheduled notifications.
+- API endpoints for profile picture upload, WhatsApp messaging, and user profile management.
+
+Key frontend code snippets:
+- HomePage component fetching active challenges from Supabase.
+- Display of progress bars and daily tasks.
+- Interest and challenge duration selection linking to static challenge cards.
+
+7. Testing
+Testing is performed using Jest and Vitest for unit and integration tests. API endpoints and frontend components are tested to ensure functionality and reliability. Critical paths include authentication, profile management, challenge tracking, and notification scheduling.
+
+8. Implementation
+The application is deployed on cloud servers with environment variables managing database connections and API keys. Continuous integration and deployment pipelines ensure smooth updates. Deployment includes setting up MongoDB and PostgreSQL instances, configuring Supabase, and hosting the frontend and backend services.
+
+9. Screen Shots
+Screenshots include:
+- HomePage displaying active challenges and daily inspiration.
+- ProfilePage showing user details and preferences.
+- Challenge pages with challenge cards and progress tracking.
+- Notification management interfaces.
+
+10. Conclusion
+The Daily Motivation application successfully combines motivational content with personalized user experiences and notification services. Future enhancements may include AI-driven challenge recommendations, expanded social features, and enhanced analytics.
+
+11. Bibliography
+- React documentation
+- Express.js documentation
+- MongoDB and Mongoose documentation
+- PostgreSQL documentation
+- Supabase documentation
+- Jest and Vitest testing frameworks
+- Tailwind CSS documentation
+- Lucide React icons library
+- Axios HTTP client
+- Date-fns library
+- Twilio API for WhatsApp messaging
