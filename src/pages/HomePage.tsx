@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+
 import { Trophy, Target, ArrowRight, Clock, Sparkles } from 'lucide-react';
 import QuoteCard from '../components/QuoteCard';
 import { useQuotes } from '../context/QuoteContext';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabaseClient';
+import api from '../lib/api';
 
 const HomePage: React.FC = () => {
   const { dailyQuote } = useQuotes();
@@ -21,17 +22,7 @@ const HomePage: React.FC = () => {
 
   const fetchActiveChallenge = async () => {
     try {
-      const { data, error } = await supabase
-        .from('user_challenges')
-        .select(`
-          *,
-          challenge:challenges(*)
-        `)
-        .eq('user_id', user?.id)
-        .eq('status', 'in_progress')
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') throw error;
+      const { data } = await api.get('/user-challenges/active');
       setActiveChallenge(data);
     } catch (error) {
       console.error('Error fetching active challenge:', error);
@@ -39,39 +30,39 @@ const HomePage: React.FC = () => {
   };
 
   const interests = [
-    { 
-      id: 'health', 
-      name: 'Health & Wellness', 
+    {
+      id: 'health',
+      name: 'Health & Wellness',
       description: 'Improve your physical and mental well-being',
       image: 'https://images.pexels.com/photos/3759658/pexels-photo-3759658.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
     },
-    { 
-      id: 'fitness', 
-      name: 'Fitness', 
+    {
+      id: 'fitness',
+      name: 'Fitness',
       description: 'Achieve your fitness goals',
       image: 'https://images.pexels.com/photos/2294361/pexels-photo-2294361.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
     },
-    { 
-      id: 'coding', 
-      name: 'Coding Skills', 
+    {
+      id: 'coding',
+      name: 'Coding Skills',
       description: 'Enhance your programming abilities',
       image: 'https://images.pexels.com/photos/2004161/pexels-photo-2004161.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
     },
-    { 
-      id: 'mindfulness', 
-      name: 'Mindfulness', 
+    {
+      id: 'mindfulness',
+      name: 'Mindfulness',
       description: 'Practice meditation and mindfulness',
       image: 'https://images.pexels.com/photos/3822622/pexels-photo-3822622.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
     },
-    { 
-      id: 'productivity', 
-      name: 'Productivity', 
+    {
+      id: 'productivity',
+      name: 'Productivity',
       description: 'Boost your daily efficiency',
       image: 'https://images.pexels.com/photos/1485548/pexels-photo-1485548.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
     },
-    { 
-      id: 'relationships', 
-      name: 'Relationships', 
+    {
+      id: 'relationships',
+      name: 'Relationships',
       description: 'Build stronger connections',
       image: 'https://images.pexels.com/photos/2235071/pexels-photo-2235071.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
     }
@@ -105,7 +96,7 @@ const HomePage: React.FC = () => {
                 <p className="text-gray-600 dark:text-gray-400 mb-4">
                   {activeChallenge.challenge.description}
                 </p>
-                
+
                 {/* Progress Bar */}
                 <div className="mb-4">
                   <div className="flex justify-between text-sm mb-1">
@@ -153,15 +144,14 @@ const HomePage: React.FC = () => {
               <button
                 key={interest.id}
                 onClick={() => setSelectedInterest(interest.id)}
-                className={`relative overflow-hidden rounded-xl transition-all duration-300 transform hover:scale-105 ${
-                  selectedInterest === interest.id
-                    ? 'ring-2 ring-blue-500 dark:ring-blue-400'
-                    : ''
-                }`}
+                className={`relative overflow-hidden rounded-xl transition-all duration-300 transform hover:scale-105 ${selectedInterest === interest.id
+                  ? 'ring-2 ring-blue-500 dark:ring-blue-400'
+                  : ''
+                  }`}
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-black/60 to-black/40 z-10"></div>
-                <img 
-                  src={interest.image} 
+                <img
+                  src={interest.image}
                   alt={interest.name}
                   className="w-full h-48 object-cover"
                 />
@@ -191,6 +181,7 @@ const HomePage: React.FC = () => {
               description="Perfect for building new habits with focused, short-term goals"
               interest={selectedInterest}
               gradient="from-blue-500 to-cyan-500"
+              userId={user?.id}
             />
             <ChallengeDurationCard
               days={60}
@@ -198,6 +189,7 @@ const HomePage: React.FC = () => {
               description="Intermediate challenge for deeper skill development"
               interest={selectedInterest}
               gradient="from-purple-500 to-pink-500"
+              userId={user?.id}
             />
             <ChallengeDurationCard
               days={100}
@@ -205,6 +197,7 @@ const HomePage: React.FC = () => {
               description="Complete transformation through long-term dedication"
               interest={selectedInterest}
               gradient="from-orange-500 to-red-500"
+              userId={user?.id}
             />
           </div>
         </section>
@@ -221,15 +214,15 @@ const HomePage: React.FC = () => {
             {new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
           </span>
         </div>
-        <div 
+        <div
           className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-6 md:p-8 rounded-2xl shadow-lg transform hover:scale-[1.02] transition-all duration-300"
           onMouseEnter={() => setIsQuoteAnimated(true)}
           onMouseLeave={() => setIsQuoteAnimated(false)}
         >
-          <QuoteCard 
-            quote={dailyQuote} 
-            size="large" 
-            variant={isQuoteAnimated ? 'gradient' : 'default'} 
+          <QuoteCard
+            quote={dailyQuote}
+            size="large"
+            variant={isQuoteAnimated ? 'gradient' : 'default'}
           />
         </div>
       </section>
@@ -243,6 +236,7 @@ interface ChallengeDurationCardProps {
   description: string;
   interest: string;
   gradient: string;
+  userId?: string;
 }
 
 const ChallengeDurationCard: React.FC<ChallengeDurationCardProps> = ({
@@ -250,8 +244,12 @@ const ChallengeDurationCard: React.FC<ChallengeDurationCardProps> = ({
   title,
   description,
   interest,
-  gradient
+  gradient,
+  userId
 }) => {
+  const navigate = useNavigate();
+
+
   // Map interest and days to the corresponding HTML file path
   const challengeFileMap: Record<string, Record<number, string>> = {
     health: {
@@ -286,14 +284,13 @@ const ChallengeDurationCard: React.FC<ChallengeDurationCardProps> = ({
     },
   };
 
-  const href = challengeFileMap[interest]?.[days] || '#';
+  const basePath = challengeFileMap[interest]?.[days] || '#';
+  const href = userId && basePath !== '#' ? `${basePath}?userId=${userId}` : basePath;
 
   return (
-    <a
-      href={href}
-      className="group relative overflow-hidden bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-      target="_blank"
-      rel="noopener noreferrer"
+    <div
+      onClick={() => window.location.href = href}
+      className="group relative overflow-hidden bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer"
     >
       <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
       <div className="relative z-10">
@@ -312,7 +309,7 @@ const ChallengeDurationCard: React.FC<ChallengeDurationCardProps> = ({
           <ArrowRight size={16} className="ml-1" />
         </div>
       </div>
-    </a>
+    </div >
   );
 };
 

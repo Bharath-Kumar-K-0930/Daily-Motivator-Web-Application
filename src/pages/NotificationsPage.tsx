@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Bell, Clock, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabaseClient';
+import api from '../lib/api';
 import { toast } from 'react-hot-toast';
 
 function formatTime12Hour(time24: string): string {
@@ -32,17 +32,12 @@ const NotificationsPage: React.FC = () => {
   const handleSave = async () => {
     try {
       setIsLoading(true);
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          notification_times: notificationTimes,
-          enable_notifications: enableNotifications,
-          notification_types: notificationTypes,
-          whatsapp_number: phoneNumber,
-        })
-        .eq('id', profile?.id);
-
-      if (error) throw error;
+      await api.put('/profile/me', {
+        notification_times: notificationTimes,
+        enable_notifications: enableNotifications,
+        notification_types: notificationTypes,
+        whatsapp_number: phoneNumber,
+      });
       toast.success('Notification preferences updated');
     } catch (error) {
       console.error('Error updating notification preferences:', error);

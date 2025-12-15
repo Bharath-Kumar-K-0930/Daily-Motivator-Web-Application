@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { User, Settings, Award, Target, Bell, LogOut, Menu, ChevronRight, Info, LucideIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabaseClient';
+import api from '../lib/api';
 
 // Define types for the challenge data
 interface Challenge {
@@ -27,13 +27,15 @@ const Sidebar: React.FC = () => {
           setChallenges([]);
           return;
         }
-        const { data, error } = await supabase
-          .from('challenges')
-          .select('*')
-          .in('category', selectedInterests);
 
-        if (error) throw error;
-        setChallenges(data || []);
+        // Use custom API to fetch challenges
+        const { data } = await api.get('/challenges');
+
+        // Filter by selected interests
+        // Note: API returns all challenges. Optimal way is to filter on backend, 
+        // but for now we filter on frontend to match previous logic.
+        const filtered = data.filter((c: Challenge) => selectedInterests.includes(c.category));
+        setChallenges(filtered || []);
       } catch (error) {
         console.error('Error fetching challenges:', error);
       }
@@ -69,9 +71,9 @@ const Sidebar: React.FC = () => {
           <div className="flex items-center space-x-3">
             <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
               {profile?.avatar_url ? (
-                <img 
-                  src={profile.avatar_url} 
-                  alt={profile.username || 'User'} 
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.username || 'User'}
                   className="w-full h-full rounded-full object-cover"
                 />
               ) : (
@@ -145,8 +147,8 @@ interface NavItemProps {
 const NavItem: React.FC<NavItemProps> = ({ to, icon: Icon, text, isOpen }) => {
   return (
     <li>
-      <Link 
-        to={to} 
+      <Link
+        to={to}
         className={`flex items-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${isOpen ? 'justify-start space-x-3' : 'justify-center'}`}
       >
         <Icon size={20} className="text-gray-500 dark:text-gray-400" />

@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>30-Day Productivity Challenge</title>
+    <style>
+        :root {
+            --primary: #2196F3;
+            --primary-dark: #1565C0;
+            --primary-light: #BBDEFB;
+            --accent: #FFC107;
+            --text: #333333;
+            --background: #e3f2fd;
+            --card-bg: #ffffff;
+            --disabled: #bdbdbd;
+            --success: #1976D2;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            padding-bottom: 60px;
+        }
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .dashboard {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        .accent-text {
+            color: var(--accent);
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+        .progress-section {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background-color: var(--primary);
+        }
+        .progress-bar-container {
+            width: 100%;
+            height: 30px;
+            background-color: #eee;
+            border-radius: 15px;
+            margin: 20px 0;
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            border-radius: 15px;
+            transition: width 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0.1) 25%,
+                rgba(255, 255, 255, 0.2) 50%,
+                rgba(255, 255, 255, 0.1) 75%
+            );
+            width: 200%;
+            animation: shimmer 2s infinite linear;
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(50%); }
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background-color: var(--primary-light);
+            padding: 20px 25px;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 150px;
+            flex: 1;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+            border-bottom: 3px solid var(--primary);
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-card h3 {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            color: var(--primary-dark);
+        }
+        .challenges-section {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        .challenges-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background-color: var(--accent);
+        }
+        .day-selector {
+            display: none;
+        }
+        .day-button {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f5f5f5;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .day-button:not(.locked):hover {
+            background-color: var(--primary-light);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+        }
+        .day-button.completed {
+            background-color: var(--primary);
+            color: white;
+        }
+        .day-button.completed::after {
+            content: '✓';
+            position: absolute;
+            top: -5px;
+            right: -2px;
+            background-color: var(--success);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+        .day-button.current {
+            border: 3px solid var(--accent);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+        }
+        .day-button.locked {
+            background-color: var(--disabled);
+            cursor: not-allowed;
+            color: #888;
+            opacity: 0.7;
+        }
+        .challenge-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid var(--primary);
+            transition: transform 0.3s ease;
+            display: block;
+        }
+        .challenge-card:hover {
+            transform: translateY(-5px);
+        }
+        .challenge-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .challenge-card h3 {
+            font-size: 1.5rem;
+            color: var(--primary-dark);
+            margin: 0;
+        }
+        .challenge-card p {
+            margin-bottom: 20px;
+            line-height: 1.7;
+        }
+        .challenge-card .challenge-tips {
+            background-color: var(--primary-light);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 3px solid var(--primary);
+        }
+        .challenge-card .challenge-tips h4 {
+            margin-bottom: 10px;
+            color: var(--primary-dark);
+        }
+        .btn {
+            background: linear-gradient(to right, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(33, 150, 243, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(120deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.2), rgba(255,255,255,0) 70%);
+            transform: translateX(-100%);
+        }
+        .btn:hover {
+            background: linear-gradient(to right, var(--primary-dark), var(--primary));
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(33, 150, 243, 0.4);
+        }
+        .btn:hover::after {
+            animation: shine 1.5s ease-out infinite;
+        }
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            20%, 100% { transform: translateX(100%); }
+        }
+        .btn:active {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(33, 150, 243, 0.4);
+        }
+        .btn-disabled {
+            background: linear-gradient(to right, var(--success), var(--primary-dark));
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+        .btn-disabled:hover {
+            background: linear-gradient(to right, var(--success), var(--primary-dark));
+            transform: none;
+            box-shadow: 0 4px 10px rgba(33, 150, 243, 0.3);
+        }
+        .badge-container {
+            text-align: center;
+            margin-top: 40px;
+            display: none;
+        }
+        .badge-container.visible {
+            display: block;
+            animation: fadeIn 1s;
+        }
+        .badge {
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .streak-flame {
+            color: var(--accent);
+            font-size: 1.2em;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            animation: modalFade 0.3s;
+        }
+        @keyframes modalFade {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #777;
+        }
+        .modal-close:hover {
+            color: var(--accent);
+        }
+        .completed-badge {
+            width: 100%;
+            max-width: 300px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><span class="accent-text">30-Day</span> Productivity Challenge</h1>
+            <p>Boost your productivity with daily tasks and focus exercises</p>
+        </div>
+    </header>
+    <div class="container dashboard">
+        <section class="progress-section">
+            <h2>Your Progress</h2>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar">0%</div>
+            </div>
+            <div class="stats">
+                <div class="stat-card">
+                    <h3 id="completedCount">0</h3>
+                    <p>Days Completed</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="currentStreak">0</h3>
+                    <p>Current Streak <span class="streak-flame">🔥</span></p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="remainingCount">30</h3>
+                    <p>Days Remaining</p>
+                </div>
+            </div>
+        </section>
+        <section class="challenges-section">
+            <h2>Daily Challenges</h2>
+<button id="dailyChallengesButton" class="btn" style="user-select:none; margin-bottom: 10px; background-color: #4CAF50; color: white; border: none; padding: 14px 30px; border-radius: 30px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(76, 175, 80, 0.4);">
+  All challenges are displayed below. Complete them in order to track your progress.
+</button>
+<style>
+  #dailyChallengesButton:hover {
+    background-color: #45a049;
+    box-shadow: 0 6px 15px rgba(69, 160, 73, 0.6);
+    transform: translateY(-3px);
+  }
+  #dailyChallengesButton:active {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(69, 160, 73, 0.6);
+  }
+</style>
+            <div class="day-selector" id="daySelector" style="display:none;">
+                <!-- Days will be dynamically generated -->
+            </div>
+            <div id="challengeCards" style="display:none;">
+                <!-- Challenge cards will be dynamically generated -->
+            </div>
+        </section>
+        <section class="badge-container" id="badgeContainer">
+            <h2>Congratulations! You've Completed the 30-Day Challenge!</h2>
+            <img src="/api/placeholder/300/300" alt="Achievement Badge" class="badge" id="achievementBadge" />
+            <p>You've successfully completed all 30 days of the Productivity Challenge!</p>
+            <button class="btn" id="downloadBadgeBtn">Download Your Badge</button>
+        </section>
+    </div>
+    <div class="modal" id="completionModal">
+        <div class="modal-content">
+            <span class="modal-close" id="modalClose">&times;</span>
+            <h2>Challenge Complete!</h2>
+            <p>You've completed today's challenge. Keep up the good work!</p>
+            <button class="btn" id="closeModalBtn">Continue</button>
+        </div>
+    </div>
+    <div class="modal" id="badgeModal">
+        <div class="modal-content">
+            <span class="modal-close" id="badgeModalClose">&times;</span>
+            <h2>Challenge Completed!</h2>
+            <p>Congratulations on completing the 30-Day Productivity Challenge!</p>
+            <img src="/api/placeholder/300/300" alt="Completion Badge" class="completed-badge" />
+            <button class="btn" id="downloadFinalBadgeBtn">Download Badge</button>
+        </div>
+    </div>
+    <script>
+        // OVERRIDE LOCALSTORAGE FOR USER ISOLATION
+        (function() {
+            try {
+                const originalSetItem = localStorage.setItem;
+                const originalGetItem = localStorage.getItem;
+                const params = new URLSearchParams(window.location.search);
+                const userId = params.get('userId');
+                const prefix = userId ? userId + '_' : '';
+
+                if (prefix) {
+                    localStorage.setItem = function(key, value) {
+                        return originalSetItem.call(localStorage, prefix + key, value);
+                    };
+                    localStorage.getItem = function(key) {
+                        return originalGetItem.call(localStorage, prefix + key);
+                    };
+                    // Optional: handle removeItem/clear if needed, but not critical for progress tracking
+                }
+            } catch(e) { console.error('Error rewriting localStorage', e); }
+        })();
+
+        const challenges = [
+            {
+                day: 1,
+                title: "Set Clear Goals",
+                description: "Write down your top 3 goals for the day.",
+                tips: "Be specific and realistic with your goals."
+            },
+            {
+                day: 2,
+                title: "Time Blocking",
+                description: "Schedule your day into focused time blocks.",
+                tips: "Avoid multitasking during these blocks."
+            },
+            {
+                day: 3,
+                title: "Eliminate Distractions",
+                description: "Identify and remove distractions from your workspace.",
+                tips: "Turn off notifications and clear clutter."
+            },
+            {
+                day: 4,
+                title: "Prioritize Tasks",
+                description: "Use the Eisenhower matrix to prioritize your tasks.",
+                tips: "Focus on important and urgent tasks first."
+            },
+            {
+                day: 5,
+                title: "Pomodoro Technique",
+                description: "Work in 25-minute focused intervals with breaks.",
+                tips: "Use a timer to stay on track."
+            },
+            {
+                day: 6,
+                title: "Declutter Workspace",
+                description: "Organize your desk and digital files.",
+                tips: "A clean space improves focus."
+            },
+            {
+                day: 7,
+                title: "Limit Social Media",
+                description: "Set specific times to check social media.",
+                tips: "Avoid aimless scrolling."
+            },
+            {
+                day: 8,
+                title: "Batch Similar Tasks",
+                description: "Group similar tasks to complete them efficiently.",
+                tips: "Reduces context switching."
+            },
+            {
+                day: 9,
+                title: "Set Deadlines",
+                description: "Assign deadlines to your tasks.",
+                tips: "Creates a sense of urgency."
+            },
+            {
+                day: 10,
+                title: "Take Regular Breaks",
+                description: "Step away from work every hour.",
+                tips: "Refresh your mind and body."
+            },
+            {
+                day: 11,
+                title: "Use To-Do Lists",
+                description: "Maintain a daily to-do list.",
+                tips: "Check off completed tasks for motivation."
+            },
+            {
+                day: 12,
+                title: "Avoid Multitasking",
+                description: "Focus on one task at a time.",
+                tips: "Improves quality and speed."
+            },
+            {
+                day: 13,
+                title: "Set Priorities for Tomorrow",
+                description: "Plan your next day’s top tasks.",
+                tips: "Prepares your mind for the day ahead."
+            },
+            {
+                day: 14,
+                title: "Limit Meetings",
+                description: "Decline unnecessary meetings.",
+                tips: "Protect your focused work time."
+            },
+            {
+                day: 15,
+                title: "Use Keyboard Shortcuts",
+                description: "Learn shortcuts for your most-used apps.",
+                tips: "Saves time and effort."
+            },
+            {
+                day: 16,
+                title: "Practice Mindfulness",
+                description: "Spend 5 minutes focusing on your breath.",
+                tips: "Reduces stress and improves focus."
+            },
+            {
+                day: 17,
+                title: "Delegate Tasks",
+                description: "Identify tasks you can delegate.",
+                tips: "Frees up your time for important work."
+            },
+            {
+                day: 18,
+                title: "Set Boundaries",
+                description: "Communicate your work hours clearly.",
+                tips: "Prevents burnout and distractions."
+            },
+            {
+                day: 19,
+                title: "Use Productivity Apps",
+                description: "Try apps like Trello or Todoist.",
+                tips: "Helps organize and track tasks."
+            },
+            {
+                day: 20,
+                title: "Reflect on Progress",
+                description: "Review what you accomplished today.",
+                tips: "Celebrate wins and learn from challenges."
+            },
+            {
+                day: 21,
+                title: "Limit Email Checking",
+                description: "Check emails only 2-3 times a day.",
+                tips: "Prevents constant interruptions."
+            },
+            {
+                day: 22,
+                title: "Set a Morning Routine",
+                description: "Create a routine to start your day productively.",
+                tips: "Builds momentum for the day."
+            },
+            {
+                day: 23,
+                title: "Use the Two-Minute Rule",
+                description: "If a task takes less than 2 minutes, do it now.",
+                tips: "Prevents task buildup."
+            },
+            {
+                day: 24,
+                title: "Limit Decision Fatigue",
+                description: "Simplify choices to save mental energy.",
+                tips: "Plan meals and outfits ahead."
+            },
+            {
+                day: 25,
+                title: "Stay Hydrated",
+                description: "Drink enough water throughout the day.",
+                tips: "Improves concentration and energy."
+            },
+            {
+                day: 26,
+                title: "Exercise Regularly",
+                description: "Incorporate physical activity into your day.",
+                tips: "Boosts energy and reduces stress."
+            },
+            {
+                day: 27,
+                title: "Use Visual Reminders",
+                description: "Place notes or alarms for important tasks.",
+                tips: "Keeps priorities top of mind."
+            },
+            {
+                day: 28,
+                title: "Limit Perfectionism",
+                description: "Aim for progress, not perfection.",
+                tips: "Avoids procrastination."
+            },
+            {
+                day: 29,
+                title: "Practice Gratitude",
+                description: "Write down 3 things you’re grateful for.",
+                tips: "Improves mindset and motivation."
+            },
+            {
+                day: 30,
+                title: "Review and Plan",
+                description: "Reflect on the month and plan next steps.",
+                tips: "Sets you up for continued success."
+            }
+        ];
+        let currentDay = 1;
+        let completedDays = [];
+        let currentStreak = 0;
+        let lastCompletedDate = null;
+        const progressBar = document.getElementById('progressBar');
+        const completedCount = document.getElementById('completedCount');
+        const remainingCount = document.getElementById('remainingCount');
+        const streakCount = document.getElementById('currentStreak');
+        const daySelector = document.getElementById('daySelector');
+        const challengeCards = document.getElementById('challengeCards');
+        const badgeContainer = document.getElementById('badgeContainer');
+        const completionModal = document.getElementById('completionModal');
+        const badgeModal = document.getElementById('badgeModal');
+        const modalClose = document.getElementById('modalClose');
+        const badgeModalClose = document.getElementById('badgeModalClose');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const downloadBadgeBtn = document.getElementById('downloadBadgeBtn');
+        const downloadFinalBadgeBtn = document.getElementById('downloadFinalBadgeBtn');
+        function initApp() {
+            loadUserData();
+            createDayButtons();
+            createChallengeCards();
+            updateStats();
+            checkForCompletion();
+            modalClose.addEventListener('click', closeModal);
+            badgeModalClose.addEventListener('click', closeBadgeModal);
+            closeModalBtn.addEventListener('click', closeModal);
+            downloadBadgeBtn.addEventListener('click', downloadBadge);
+            downloadFinalBadgeBtn.addEventListener('click', downloadBadge);
+            const dailyChallengesButton = document.getElementById('dailyChallengesButton');
+            const challengeCardsDiv = document.getElementById('challengeCards');
+            if (dailyChallengesButton && challengeCardsDiv) {
+                dailyChallengesButton.addEventListener('click', function() {
+                    if (challengeCardsDiv.style.display === 'none') {
+                        challengeCardsDiv.style.display = 'block';
+                        dailyChallengesButton.textContent = 'Hide challenges';
+                    } else {
+                        challengeCardsDiv.style.display = 'none';
+                        dailyChallengesButton.textContent = 'All challenges are displayed below. Complete them in order to track your progress.';
+                    }
+                });
+            }
+        }
+        function loadUserData() {
+            const savedData = localStorage.getItem('productivityChallengeData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                completedDays = data.completedDays || [];
+                currentStreak = data.currentStreak || 0;
+                lastCompletedDate = data.lastCompletedDate ? new Date(data.lastCompletedDate) : null;
+                if (completedDays.length > 0) {
+                    currentDay = Math.min(completedDays.length + 1, 30);
+                }
+            }
+        }
+        function saveUserData() {
+            const data = {
+                completedDays: completedDays,
+                currentStreak: currentStreak,
+                lastCompletedDate: lastCompletedDate
+            };
+            localStorage.setItem('productivityChallengeData', JSON.stringify(data));
+        }
+        function createDayButtons() {
+            daySelector.innerHTML = '';
+            for (let i = 1; i <= 30; i++) {
+                const dayButton = document.createElement('div');
+                dayButton.classList.add('day-button');
+                dayButton.textContent = i;
+                if (completedDays.includes(i)) {
+                    dayButton.classList.add('completed');
+                }
+                if (i === currentDay) {
+                    dayButton.classList.add('current');
+                }
+                daySelector.appendChild(dayButton);
+            }
+        }
+        function createChallengeCards() {
+            challengeCards.innerHTML = '';
+            challenges.forEach(challenge => {
+                const card = document.createElement('div');
+                card.classList.add('challenge-card');
+                card.id = `challenge-${challenge.day}`;
+                const isCompleted = completedDays.includes(challenge.day);
+                card.innerHTML = `
+                    <h3>Day ${challenge.day}: ${challenge.title}</h3>
+                    <p>${challenge.description}</p>
+                    <div class="challenge-tips">
+                        <h4>Tips for Success</h4>
+                        <p>${challenge.tips}</p>
+                    </div>
+                    <button class="btn ${isCompleted ? 'btn-disabled' : ''}" id="complete-${challenge.day}" ${isCompleted ? 'disabled' : ''}>
+                        ${isCompleted ? 'Completed ✓' : 'Mark as Complete'}
+                    </button>
+                    ${isCompleted ? `<button class="btn" id="uncheck-${challenge.day}" style="margin-left: 10px; background-color: #f44336;">Uncheck</button>` : ''}
+                `;
+                challengeCards.appendChild(card);
+                const completeBtn = document.getElementById(`complete-${challenge.day}`);
+                if (completeBtn && !isCompleted) {
+                    completeBtn.addEventListener('click', () => completeChallenge(challenge.day));
+                }
+                const uncheckBtn = document.getElementById(`uncheck-${challenge.day}`);
+                if (uncheckBtn) {
+                    uncheckBtn.addEventListener('click', () => uncheckChallenge(challenge.day));
+                }
+            });
+        }
+        function completeChallenge(day) {
+            if (!completedDays.includes(day)) {
+                createConfetti();
+                completedDays.push(day);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                if (lastCompletedDate) {
+                    const yesterday = new Date(today);
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    if (lastCompletedDate.getTime() === yesterday.getTime()) {
+                        currentStreak++;
+                    } else if (lastCompletedDate.getTime() < yesterday.getTime()) {
+                        currentStreak = 1;
+                    }
+                } else {
+                    currentStreak = 1;
+                }
+                lastCompletedDate = today;
+                if (day === currentDay) {
+                    currentDay = Math.min(currentDay + 1, 30);
+                }
+                saveUserData();
+                updateStats();
+                createDayButtons();
+                createChallengeCards();
+                showCompletionModal();
+                checkForCompletion();
+            }
+        }
+        function uncheckChallenge(day) {
+            const index = completedDays.indexOf(day);
+            if (index !== -1) {
+                completedDays.splice(index, 1);
+                if (day < currentDay) {
+                    currentDay = day;
+                }
+                saveUserData();
+                updateStats();
+                createDayButtons();
+                createChallengeCards();
+                closeModal();
+                closeBadgeModal();
+            }
+        }
+        function createConfetti() {
+            const confettiCount = 100;
+            const colors = ['#2196F3', '#FFC107', '#BBDEFB', '#FFD54F', '#2196F3'];
+            const confettiContainer = document.createElement('div');
+            confettiContainer.style.position = 'fixed';
+            confettiContainer.style.top = '0';
+            confettiContainer.style.left = '0';
+            confettiContainer.style.width = '100%';
+            confettiContainer.style.height = '100%';
+            confettiContainer.style.pointerEvents = 'none';
+            confettiContainer.style.zIndex = '9999';
+            document.body.appendChild(confettiContainer);
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.position = 'absolute';
+                confetti.style.width = `${Math.random() * 10 + 5}px`;
+                confetti.style.height = `${Math.random() * 5 + 5}px`;
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.borderRadius = `${Math.random() > 0.5 ? '50%' : '0'}`;
+                confetti.style.top = '0';
+                confetti.style.left = `${Math.random() * 100}%`;
+                confetti.style.opacity = '1';
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                confettiContainer.appendChild(confetti);
+                const animation = confetti.animate(
+                    [
+                        { transform: `translate(0, 0) rotate(${Math.random() * 360}deg)`, opacity: 1 },
+                        { transform: `translate(${Math.random() * 100 - 50}px, ${window.innerHeight}px) rotate(${Math.random() * 360}deg)`, opacity: 0 }
+                    ],
+                    {
+                        duration: Math.random() * 3000 + 1500,
+                        easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)'
+                    }
+                );
+                animation.onfinish = () => {
+                    confetti.remove();
+                    if (confettiContainer.childElementCount === 0) {
+                        confettiContainer.remove();
+                    }
+                };
+            }
+        }
+        function updateStats() {
+            const completed = completedDays.length;
+            const remaining = 30 - completed;
+            const progress = Math.round((completed / 30) * 100);
+            completedCount.textContent = completed;
+            remainingCount.textContent = remaining;
+            streakCount.textContent = currentStreak;
+            progressBar.style.width = `${progress}%`;
+            progressBar.textContent = `${progress}%`;
+        }
+        function checkForCompletion() {
+            if (completedDays.length === 30) {
+                badgeContainer.classList.add('visible');
+                showBadgeModal();
+            }
+        }
+        function showCompletionModal() {
+            completionModal.classList.add('active');
+        }
+        function closeModal() {
+            completionModal.classList.remove('active');
+        }
+        function showBadgeModal() {
+            badgeModal.classList.add('active');
+        }
+        function closeBadgeModal() {
+            badgeModal.classList.remove('active');
+        }
+        function downloadBadge() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 500;
+            canvas.height = 500;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#2196F3';
+            ctx.beginPath();
+            ctx.arc(250, 250, 240, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.arc(250, 250, 220, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(250, 180, 60, Math.PI, Math.PI * 2);
+            ctx.fillRect(190, 180, 120, 20);
+            ctx.fillRect(240, 200, 20, 100);
+            ctx.fillRect(210, 300, 80, 10);
+            ctx.fill();
+            ctx.fillStyle = '#333333';
+            ctx.font = 'bold 30px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('ACHIEVEMENT UNLOCKED', 250, 380);
+            ctx.font = 'bold 24px Arial';
+            ctx.fillText('30-Day Productivity', 250, 410);
+            ctx.fillText('Challenge Completed', 250, 440);
+            const today = new Date();
+            const dateString = today.toLocaleDateString();
+            ctx.font = '18px Arial';
+            ctx.fillText(dateString, 250, 470);
+            const dataURL = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = 'productivity-challenge-badge.png';
+            link.href = dataURL;
+            link.click();
+        }
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>

@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>60-Day Fitness Challenge</title>
+    <style>
+        :root {
+            --primary: #E91E63;
+            --primary-dark: #AD1457;
+            --primary-light: #F8BBD0;
+            --accent: #FFC107;
+            --text: #333333;
+            --background: #fff0f6;
+            --card-bg: #ffffff;
+            --disabled: #bdbdbd;
+            --success: #C2185B;
+        }
+        /* The rest of the CSS is the same as Health & Wellness 60days page */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            padding-bottom: 60px;
+        }
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            text-align: center;
+            padding: 60px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .dashboard {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        .accent-text {
+            color: var(--accent);
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+        .progress-section {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background-color: var(--primary);
+        }
+        .progress-bar-container {
+            width: 100%;
+            height: 30px;
+            background-color: #eee;
+            border-radius: 15px;
+            margin: 20px 0;
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            border-radius: 15px;
+            transition: width 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0.1) 25%,
+                rgba(255, 255, 255, 0.2) 50%,
+                rgba(255, 255, 255, 0.1) 75%
+            );
+            width: 200%;
+            animation: shimmer 2s infinite linear;
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(50%); }
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background-color: var(--primary-light);
+            padding: 20px 25px;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 150px;
+            flex: 1;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+            border-bottom: 3px solid var(--primary);
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-card h3 {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            color: var(--primary-dark);
+        }
+        .challenges-section {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        .challenges-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background-color: var(--accent);
+        }
+        .day-selector {
+            display: none;
+        }
+        .day-button {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f5f5f5;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .day-button:not(.locked):hover {
+            background-color: var(--primary-light);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+        }
+        .day-button.completed {
+            background-color: var(--primary);
+            color: white;
+        }
+        .day-button.completed::after {
+            content: '✓';
+            position: absolute;
+            top: -5px;
+            right: -2px;
+            background-color: var(--success);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+        .day-button.current {
+            border: 3px solid var(--accent);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+        }
+        .day-button.locked {
+            background-color: var(--disabled);
+            cursor: not-allowed;
+            color: #888;
+            opacity: 0.7;
+        }
+        .challenge-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid var(--primary);
+            transition: transform 0.3s ease;
+            display: block;
+        }
+        .challenge-card:hover {
+            transform: translateY(-5px);
+        }
+        .challenge-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .challenge-card h3 {
+            font-size: 1.5rem;
+            color: var(--primary-dark);
+            margin: 0;
+        }
+        .challenge-card p {
+            margin-bottom: 20px;
+            line-height: 1.7;
+        }
+        .challenge-card .challenge-tips {
+            background-color: var(--primary-light);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 3px solid var(--primary);
+        }
+        .challenge-card .challenge-tips h4 {
+            margin-bottom: 10px;
+            color: var(--primary-dark);
+        }
+        /* Custom checkbox styling */
+        .checkbox-container {
+            position: relative;
+            min-width: 30px;
+        }
+        .custom-checkbox {
+            opacity: 0;
+            position: absolute;
+        }
+        .checkbox-label {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 2px solid var(--primary);
+            border-radius: 5px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .custom-checkbox:checked + .checkbox-label {
+            background-color: var(--primary);
+        }
+        .custom-checkbox:checked + .checkbox-label:after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .custom-checkbox:disabled + .checkbox-label {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .btn {
+            background: linear-gradient(to right, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(233, 30, 99, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(120deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.2), rgba(255,255,255,0) 70%);
+            transform: translateX(-100%);
+        }
+        .btn:hover {
+            background: linear-gradient(to right, var(--primary-dark), var(--primary));
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(233, 30, 99, 0.4);
+        }
+        .btn:hover::after {
+            animation: shine 1.5s ease-out infinite;
+        }
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            20%, 100% { transform: translateX(100%); }
+        }
+        .btn:active {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(233, 30, 99, 0.4);
+        }
+        .btn-disabled {
+            background: linear-gradient(to right, var(--success), var(--primary-dark));
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+        .btn-disabled:hover {
+            background: linear-gradient(to right, var(--success), var(--primary-dark));
+            transform: none;
+            box-shadow: 0 4px 10px rgba(233, 30, 99, 0.3);
+        }
+        .badge-container {
+            text-align: center;
+            margin-top: 40px;
+            display: none;
+        }
+        .badge-container.visible {
+            display: block;
+            animation: fadeIn 1s;
+        }
+        .badge {
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .streak-flame {
+            color: var(--accent);
+            font-size: 1.2em;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            animation: modalFade 0.3s;
+        }
+        @keyframes modalFade {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #777;
+        }
+        .modal-close:hover {
+            color: var(--accent);
+        }
+        .completed-badge {
+            width: 100%;
+            max-width: 300px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><span class="accent-text">60-Day</span> Fitness Challenge</h1>
+            <p>Improve your fitness with daily challenges focused on strength, cardio, and flexibility</p>
+        </div>
+    </header>
+    <div class="container dashboard">
+        <section class="progress-section">
+            <h2>Your Progress</h2>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar">0%</div>
+            </div>
+            <div class="stats">
+                <div class="stat-card">
+                    <h3 id="completedCount">0</h3>
+                    <p>Days Completed</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="currentStreak">0</h3>
+                    <p>Current Streak <span class="streak-flame">🔥</span></p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="remainingCount">60</h3>
+                    <p>Days Remaining</p>
+                </div>
+            </div>
+        </section>
+        <section class="challenges-section">
+            <h2>Daily Challenges</h2>
+            <button id="dailyChallengesButton" class="btn" style="user-select:none; margin-bottom: 10px;">
+              All challenges are displayed below. Complete them in order to track your progress.
+            </button>
+            <div class="day-selector" id="daySelector" style="display:none;">
+                <!-- Days will be dynamically generated -->
+            </div>
+            <div id="challengeCards" style="display:none;">
+                <!-- Challenge cards will be dynamically generated -->
+            </div>
+        </section>
+        <section class="badge-container" id="badgeContainer">
+            <h2>Congratulations! You've Completed the 60-Day Challenge!</h2>
+            <img src="/api/placeholder/300/300" alt="Achievement Badge" class="badge" id="achievementBadge" />
+            <p>You've successfully completed all 60 days of the Fitness Challenge!</p>
+            <button class="btn" id="downloadBadgeBtn">Download Your Badge</button>
+        </section>
+    </div>
+    <div class="modal" id="completionModal">
+        <div class="modal-content">
+            <span class="modal-close" id="modalClose">&times;</span>
+            <h2>Challenge Complete!</h2>
+            <p>You've completed today's challenge. Keep up the good work!</p>
+            <button class="btn" id="closeModalBtn">Continue</button>
+        </div>
+    </div>
+    <div class="modal" id="badgeModal">
+        <div class="modal-content">
+            <span class="modal-close" id="badgeModalClose">&times;</span>
+            <h2>Challenge Completed!</h2>
+            <p>Congratulations on completing the 60-Day Fitness Challenge!</p>
+            <img src="/api/placeholder/300/300" alt="Completion Badge" class="completed-badge" />
+            <button class="btn" id="downloadFinalBadgeBtn">Download Badge</button>
+        </div>
+    </div>
+    <script>
+        // OVERRIDE LOCALSTORAGE FOR USER ISOLATION
+        (function() {
+            try {
+                const originalSetItem = localStorage.setItem;
+                const originalGetItem = localStorage.getItem;
+                const params = new URLSearchParams(window.location.search);
+                const userId = params.get('userId');
+                const prefix = userId ? userId + '_' : '';
+
+                if (prefix) {
+                    localStorage.setItem = function(key, value) {
+                        return originalSetItem.call(localStorage, prefix + key, value);
+                    };
+                    localStorage.getItem = function(key) {
+                        return originalGetItem.call(localStorage, prefix + key);
+                    };
+                    // Optional: handle removeItem/clear if needed, but not critical for progress tracking
+                }
+            } catch(e) { console.error('Error rewriting localStorage', e); }
+        })();
+
+        const challenges = [
+            { day: 1, title: "Morning Stretch Routine", description: "Start your day with a 10-minute full-body stretch.", tips: "Focus on breathing deeply and holding each stretch." },
+            { day: 2, title: "Walk 10,000 Steps", description: "Aim to walk at least 10,000 steps today.", tips: "Use a pedometer or smartphone app to track your steps." },
+            { day: 3, title: "Bodyweight Squats", description: "Perform 3 sets of 15 bodyweight squats.", tips: "Keep your back straight and knees behind toes." },
+            { day: 4, title: "Plank Hold", description: "Hold a plank position for 1 minute, repeat 3 times.", tips: "Engage your core and keep your body in a straight line." },
+            { day: 5, title: "Cardio Session", description: "Do 20 minutes of moderate-intensity cardio (jogging, cycling).", tips: "Maintain a steady pace and focus on your breathing." },
+            { day: 6, title: "Upper Body Strength", description: "Perform 3 sets of 10 push-ups.", tips: "Keep your body straight and lower yourself slowly." },
+            { day: 7, title: "Yoga for Flexibility", description: "Follow a 20-minute beginner yoga routine.", tips: "Focus on smooth transitions and deep breathing." },
+            { day: 8, title: "Lunges", description: "Do 3 sets of 12 lunges per leg.", tips: "Keep your torso upright and step forward with control." },
+            { day: 9, title: "Core Workout", description: "Complete 3 sets of 20 bicycle crunches.", tips: "Keep your lower back pressed to the floor." },
+            { day: 10, title: "Rest and Recovery", description: "Take a rest day with light stretching.", tips: "Focus on hydration and gentle movement." },
+            { day: 11, title: "Jump Rope", description: "Jump rope for 5 sets of 2 minutes.", tips: "Keep your jumps low and land softly." },
+            { day: 12, title: "Glute Bridges", description: "Perform 3 sets of 15 glute bridges.", tips: "Squeeze your glutes at the top of the movement." },
+            { day: 13, title: "Mountain Climbers", description: "Do 3 sets of 30 seconds mountain climbers.", tips: "Keep your core tight and back flat." },
+            { day: 14, title: "Balance Training", description: "Practice standing on one leg for 1 minute each side.", tips: "Engage your core and focus on a fixed point." },
+            { day: 15, title: "HIIT Workout", description: "Complete a 15-minute high-intensity interval training session.", tips: "Alternate between intense bursts and rest." },
+            { day: 16, title: "Tricep Dips", description: "Do 3 sets of 12 tricep dips using a chair.", tips: "Keep your elbows close to your body." },
+            { day: 17, title: "Side Plank", description: "Hold a side plank for 30 seconds each side, 3 sets.", tips: "Keep your body in a straight line." },
+            { day: 18, title: "Step-Ups", description: "Perform 3 sets of 15 step-ups per leg.", tips: "Use a sturdy bench or step." },
+            { day: 19, title: "Jumping Jacks", description: "Do 3 sets of 50 jumping jacks.", tips: "Land softly and keep a steady pace." },
+            { day: 20, title: "Pilates Core", description: "Follow a 20-minute Pilates core workout.", tips: "Focus on controlled movements and breathing." },
+            { day: 21, title: "Wall Sit", description: "Hold a wall sit for 1 minute, repeat 3 times.", tips: "Keep your knees at a 90-degree angle." },
+            { day: 22, title: "Arm Circles", description: "Do 3 sets of 30 seconds arm circles forward and backward.", tips: "Keep your arms straight and controlled." },
+            { day: 23, title: "Burpees", description: "Perform 3 sets of 10 burpees.", tips: "Maintain good form and pace yourself." },
+            { day: 24, title: "Hip Flexor Stretch", description: "Stretch your hip flexors for 2 minutes each side.", tips: "Keep your back straight and hips square." },
+            { day: 25, title: "Calf Raises", description: "Do 3 sets of 20 calf raises.", tips: "Pause at the top and lower slowly." },
+            { day: 26, title: "Russian Twists", description: "Complete 3 sets of 30 Russian twists.", tips: "Keep your core engaged and back straight." },
+            { day: 27, title: "Foam Rolling", description: "Spend 10 minutes foam rolling major muscle groups.", tips: "Apply moderate pressure and breathe deeply." },
+            { day: 28, title: "Jump Squats", description: "Perform 3 sets of 15 jump squats.", tips: "Land softly and use your arms for momentum." },
+            { day: 29, title: "Walking Lunges", description: "Do 3 sets of 20 walking lunges.", tips: "Keep your torso upright and step with control." },
+            { day: 30, title: "Full Body Stretch", description: "Finish with a 15-minute full body stretch.", tips: "Hold each stretch for at least 30 seconds." },
+            { day: 31, title: "Incline Push-ups", description: "Perform 3 sets of 12 incline push-ups.", tips: "Keep your body straight and engage your core." },
+            { day: 32, title: "Side Lunges", description: "Do 3 sets of 12 side lunges per leg.", tips: "Keep your chest up and step wide." },
+            { day: 33, title: "Superman Hold", description: "Hold the superman position for 30 seconds, repeat 3 times.", tips: "Lift your arms and legs simultaneously." },
+            { day: 34, title: "Jump Rope Intervals", description: "Jump rope for 1 minute, rest 30 seconds, repeat 5 times.", tips: "Maintain a steady rhythm." },
+            { day: 35, title: "Wall Push-offs", description: "Perform 3 sets of 15 wall push-offs.", tips: "Push explosively and land softly." },
+            { day: 36, title: "Seated Forward Fold", description: "Hold a seated forward fold stretch for 2 minutes.", tips: "Keep your back straight and reach forward gently." },
+            { day: 37, title: "Box Jumps", description: "Perform 3 sets of 10 box jumps.", tips: "Land softly and use your arms for momentum." },
+            { day: 38, title: "Bird Dog", description: "Do 3 sets of 15 bird dog reps per side.", tips: "Keep your core engaged and back flat." },
+            { day: 39, title: "High Knees", description: "Perform 3 sets of 30 seconds high knees.", tips: "Keep your knees high and pump your arms." },
+            { day: 40, title: "Chest Opener Stretch", description: "Hold a chest opener stretch for 2 minutes.", tips: "Keep your shoulders down and back." },
+            { day: 41, title: "Tricep Stretch", description: "Stretch your triceps for 2 minutes each side.", tips: "Keep your elbow close to your head." },
+            { day: 42, title: "Side Leg Raises", description: "Do 3 sets of 15 side leg raises per leg.", tips: "Keep your hips square and controlled." },
+            { day: 43, title: "Jumping Lunges", description: "Perform 3 sets of 12 jumping lunges.", tips: "Land softly and keep your knees aligned." },
+            { day: 44, title: "Standing Calf Stretch", description: "Hold a standing calf stretch for 2 minutes each side.", tips: "Keep your heel on the ground." },
+            { day: 45, title: "Reverse Crunches", description: "Do 3 sets of 20 reverse crunches.", tips: "Engage your lower abs and avoid swinging." },
+            { day: 46, title: "Wall Angels", description: "Perform 3 sets of 15 wall angels.", tips: "Keep your back flat against the wall." },
+            { day: 47, title: "Glute Kickbacks", description: "Do 3 sets of 15 glute kickbacks per leg.", tips: "Squeeze your glutes at the top." },
+            { day: 48, title: "Jump Rope Endurance", description: "Jump rope continuously for 10 minutes.", tips: "Maintain a steady pace and rhythm." },
+            { day: 49, title: "Hip Circles", description: "Do 3 sets of 30 seconds hip circles each direction.", tips: "Keep your core engaged." },
+            { day: 50, title: "Wall Sit with Arm Raises", description: "Hold a wall sit and raise arms for 1 minute, repeat 3 times.", tips: "Keep your back flat and arms controlled." },
+            { day: 51, title: "Standing Side Crunches", description: "Do 3 sets of 20 standing side crunches.", tips: "Engage your obliques and keep your back straight." },
+            { day: 52, title: "Boxing Punches", description: "Perform 3 sets of 1-minute boxing punches.", tips: "Keep your core tight and breathe steadily." },
+            { day: 53, title: "Hamstring Stretch", description: "Hold a hamstring stretch for 2 minutes each side.", tips: "Keep your back straight and reach gently." },
+            { day: 54, title: "Wall Push-ups", description: "Do 3 sets of 15 wall push-ups.", tips: "Keep your body straight and elbows close." },
+            { day: 55, title: "Standing Forward Bend", description: "Hold a standing forward bend for 2 minutes.", tips: "Relax your neck and let your head hang." },
+            { day: 56, title: "Side Plank with Leg Lift", description: "Hold a side plank and lift top leg for 30 seconds each side, 3 sets.", tips: "Keep your body straight and controlled." },
+            { day: 57, title: "Jumping Jacks with Squat", description: "Perform 3 sets of 20 jumping jacks with a squat.", tips: "Land softly and keep your knees behind toes." },
+            { day: 58, title: "Seated Spinal Twist", description: "Hold a seated spinal twist for 2 minutes each side.", tips: "Keep your spine tall and twist gently." },
+            { day: 59, title: "Wall Chest Stretch", description: "Hold a wall chest stretch for 2 minutes.", tips: "Keep your shoulders down and back." },
+            { day: 60, title: "Full Body Cooldown", description: "Finish with a 20-minute full body cooldown stretch.", tips: "Breathe deeply and relax your muscles." }
+        ];
+        let currentDay = 1;
+        let completedDays = [];
+        let currentStreak = 0;
+        let lastCompletedDate = null;
+        const progressBar = document.getElementById('progressBar');
+        const completedCount = document.getElementById('completedCount');
+        const remainingCount = document.getElementById('remainingCount');
+        const streakCount = document.getElementById('currentStreak');
+        const daySelector = document.getElementById('daySelector');
+        const challengeCards = document.getElementById('challengeCards');
+        const badgeContainer = document.getElementById('badgeContainer');
+        const completionModal = document.getElementById('completionModal');
+        const badgeModal = document.getElementById('badgeModal');
+        const modalClose = document.getElementById('modalClose');
+        const badgeModalClose = document.getElementById('badgeModalClose');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const downloadBadgeBtn = document.getElementById('downloadBadgeBtn');
+        const downloadFinalBadgeBtn = document.getElementById('downloadFinalBadgeBtn');
+        function initApp() {
+            loadUserData();
+            createDayButtons();
+            createChallengeCards();
+            updateStats();
+            checkForCompletion();
+            modalClose.addEventListener('click', closeModal);
+            badgeModalClose.addEventListener('click', closeBadgeModal);
+            closeModalBtn.addEventListener('click', closeModal);
+            downloadBadgeBtn.addEventListener('click', downloadBadge);
+            downloadFinalBadgeBtn.addEventListener('click', downloadBadge);
+            const dailyChallengesButton = document.getElementById('dailyChallengesButton');
+            const challengeCardsDiv = document.getElementById('challengeCards');
+            if (dailyChallengesButton && challengeCardsDiv) {
+                dailyChallengesButton.addEventListener('click', function() {
+                    if (challengeCardsDiv.style.display === 'none' || challengeCardsDiv.style.display === '') {
+                        challengeCardsDiv.style.display = 'block';
+                        dailyChallengesButton.textContent = "Hide challenges";
+                    } else {
+                        challengeCardsDiv.style.display = 'none';
+                        dailyChallengesButton.textContent = "All challenges are displayed below. Complete them in order to track your progress.";
+                    }
+                });
+            }
+        }
+        function loadUserData() {
+            const savedData = localStorage.getItem('fitnessChallengeData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                completedDays = data.completedDays || [];
+                currentStreak = data.currentStreak || 0;
+                lastCompletedDate = data.lastCompletedDate ? new Date(data.lastCompletedDate) : null;
+                if (completedDays.length > 0) {
+                    currentDay = Math.min(completedDays.length + 1, 60);
+                }
+            }
+        }
+        function saveUserData() {
+            const data = {
+                completedDays: completedDays,
+                currentStreak: currentStreak,
+                lastCompletedDate: lastCompletedDate
+            };
+            localStorage.setItem('fitnessChallengeData', JSON.stringify(data));
+        }
+        function createDayButtons() {
+            daySelector.innerHTML = '';
+            for (let i = 1; i <= 60; i++) {
+                const dayButton = document.createElement('div');
+                dayButton.classList.add('day-button');
+                dayButton.textContent = i;
+                if (completedDays.includes(i)) {
+                    dayButton.classList.add('completed');
+                }
+                if (i === currentDay) {
+                    dayButton.classList.add('current');
+                }
+                daySelector.appendChild(dayButton);
+            }
+        }
+        function createChallengeCards() {
+            challengeCards.innerHTML = '';
+            challenges.forEach(challenge => {
+                const card = document.createElement('div');
+                card.classList.add('challenge-card');
+                card.id = `challenge-${challenge.day}`;
+                const isCompleted = completedDays.includes(challenge.day);
+                card.innerHTML = `
+                    <h3>Day ${challenge.day}: ${challenge.title}</h3>
+                    <p>${challenge.description}</p>
+                    <div class="challenge-tips">
+                        <h4>Tips for Success</h4>
+                        <p>${challenge.tips}</p>
+                    </div>
+                    <button class="btn ${isCompleted ? 'btn-disabled' : ''}" id="complete-${challenge.day}" ${isCompleted ? 'disabled' : ''}>
+                        ${isCompleted ? 'Completed ✓' : 'Mark as Complete'}
+                    </button>
+                    ${isCompleted ? `<button class="btn btn-uncheck" id="uncheck-${challenge.day}">Uncheck</button>` : ''}
+                `;
+                challengeCards.appendChild(card);
+                const completeBtn = document.getElementById(`complete-${challenge.day}`);
+                if (completeBtn && !isCompleted) {
+                    completeBtn.addEventListener('click', () => completeChallenge(challenge.day));
+                }
+                const uncheckBtn = document.getElementById(`uncheck-${challenge.day}`);
+                if (uncheckBtn) {
+                    uncheckBtn.addEventListener('click', () => uncheckChallenge(challenge.day));
+                }
+            });
+        }
+        function completeChallenge(day) {
+            if (!completedDays.includes(day)) {
+                const checkbox = document.getElementById(`checkbox-${day}`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                    checkbox.disabled = true;
+                }
+                createConfetti();
+                completedDays.push(day);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                if (lastCompletedDate) {
+                    const yesterday = new Date(today);
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    if (lastCompletedDate.getTime() === yesterday.getTime()) {
+                        currentStreak++;
+                    } else if (lastCompletedDate.getTime() < yesterday.getTime()) {
+                        currentStreak = 1;
+                    }
+                } else {
+                    currentStreak = 1;
+                }
+                lastCompletedDate = today;
+                if (day === currentDay) {
+                    currentDay = Math.min(currentDay + 1, 60);
+                }
+                saveUserData();
+                updateStats();
+                createDayButtons();
+                createChallengeCards();
+                showCompletionModal();
+                checkForCompletion();
+            }
+        }
+        function uncheckChallenge(day) {
+            const index = completedDays.indexOf(day);
+            if (index !== -1) {
+                completedDays.splice(index, 1);
+                const checkbox = document.getElementById(`checkbox-${day}`);
+                if (checkbox) {
+                    checkbox.checked = false;
+                    checkbox.disabled = false;
+                }
+                currentStreak = 0;
+                lastCompletedDate = null;
+                if (day < currentDay) {
+                    currentDay = day;
+                }
+                saveUserData();
+                updateStats();
+                createDayButtons();
+                createChallengeCards();
+            }
+        }
+        function createConfetti() {
+            const confettiCount = 100;
+            const colors = ['#E91E63', '#FFC107', '#F8BBD0', '#FFEB3B', '#E91E63'];
+            const confettiContainer = document.createElement('div');
+            confettiContainer.style.position = 'fixed';
+            confettiContainer.style.top = '0';
+            confettiContainer.style.left = '0';
+            confettiContainer.style.width = '100%';
+            confettiContainer.style.height = '100%';
+            confettiContainer.style.pointerEvents = 'none';
+            confettiContainer.style.zIndex = '9999';
+            document.body.appendChild(confettiContainer);
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.position = 'absolute';
+                confetti.style.width = `${Math.random() * 10 + 5}px`;
+                confetti.style.height = `${Math.random() * 5 + 5}px`;
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.borderRadius = `${Math.random() > 0.5 ? '50%' : '0'}`;
+                confetti.style.top = '0';
+                confetti.style.left = `${Math.random() * 100}%`;
+                confetti.style.opacity = '1';
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                confettiContainer.appendChild(confetti);
+                const animation = confetti.animate(
+                    [
+                        { transform: `translate(0, 0) rotate(${Math.random() * 360}deg)`, opacity: 1 },
+                        { transform: `translate(${Math.random() * 100 - 50}px, ${window.innerHeight}px) rotate(${Math.random() * 360}deg)`, opacity: 0 }
+                    ],
+                    {
+                        duration: Math.random() * 3000 + 1500,
+                        easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)'
+                    }
+                );
+                animation.onfinish = () => {
+                    confetti.remove();
+                    if (confettiContainer.childElementCount === 0) {
+                        confettiContainer.remove();
+                    }
+                };
+            }
+        }
+        function updateStats() {
+            const completed = completedDays.length;
+            const remaining = 60 - completed;
+            const progress = Math.round((completed / 60) * 100);
+            completedCount.textContent = completed;
+            remainingCount.textContent = remaining;
+            streakCount.textContent = currentStreak;
+            progressBar.style.width = `${progress}%`;
+            progressBar.textContent = `${progress}%`;
+        }
+        function checkForCompletion() {
+            if (completedDays.length === 60) {
+                badgeContainer.classList.add('visible');
+                showBadgeModal();
+            }
+        }
+        function showCompletionModal() {
+            completionModal.classList.add('active');
+        }
+        function closeModal() {
+            completionModal.classList.remove('active');
+        }
+        function showBadgeModal() {
+            badgeModal.classList.add('active');
+        }
+        function closeBadgeModal() {
+            badgeModal.classList.remove('active');
+        }
+        function downloadBadge() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 500;
+            canvas.height = 500;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#E91E63';
+            ctx.beginPath();
+            ctx.arc(250, 250, 240, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.arc(250, 250, 220, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(250, 180, 60, Math.PI, Math.PI * 2);
+            ctx.fillRect(190, 180, 120, 20);
+            ctx.fillRect(240, 200, 20, 100);
+            ctx.fillRect(210, 300, 80, 10);
+            ctx.fill();
+            ctx.fillStyle = '#333333';
+            ctx.font = 'bold 30px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('ACHIEVEMENT UNLOCKED', 250, 380);
+            ctx.font = 'bold 24px Arial';
+            ctx.fillText('60-Day Fitness', 250, 410);
+            ctx.fillText('Challenge Completed', 250, 440);
+            const today = new Date();
+            const dateString = today.toLocaleDateString();
+            ctx.font = '18px Arial';
+            ctx.fillText(dateString, 250, 470);
+            const dataURL = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = 'fitness-challenge-badge.png';
+            link.href = dataURL;
+            link.click();
+        }
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>

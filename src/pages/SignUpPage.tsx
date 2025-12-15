@@ -15,7 +15,9 @@ const SignUpPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await signUp(email, password);
+      // Create a default username from email if not provided
+      const username = email.split('@')[0];
+      await signUp({ email, password, username, full_name: username });
       navigate('/home');
       toast.success('Welcome to DailyMotive!');
     } catch (error) {

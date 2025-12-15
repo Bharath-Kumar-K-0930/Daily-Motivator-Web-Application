@@ -26,7 +26,7 @@ export interface Challenge {
   tasks: ChallengeTask[];
 }
 
-export type ChallengeCategory = 
+export type ChallengeCategory =
   | 'health'
   | 'mental-wellness'
   | 'fitness'
@@ -45,7 +45,8 @@ export interface ChallengeTask {
 export interface UserProfile {
   id: string;
   username: string;
-  fullName: string;
+  email: string;
+  full_name: string;
   notification_times?: string[];
   enable_notifications?: boolean;
   notification_types?: {
@@ -61,9 +62,9 @@ export interface UserProfile {
     categories?: string[];
   };
 
-  badges: Badge[];
+  badges?: Badge[];
   activeChallenge?: Challenge;
-  challengeProgress: {
+  challengeProgress?: {
     challengeId: string;
     completedTasks: string[];
     startDate: string;

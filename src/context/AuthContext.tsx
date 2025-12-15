@@ -1,16 +1,22 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User } from '@supabase/supabase-js';
-import { UserProfile } from '../types';
-import { supabase } from '../lib/supabaseClient';
+import { UserProfile } from '../types'; // Ensure types are compatible or updated
+import api from '../lib/api';
+
+interface User {
+  id: string;
+  email: string;
+  username: string;
+  full_name?: string;
+}
 
 interface AuthContextType {
   user: User | null;
   profile: UserProfile | null;
   selectedInterests: string[];
   setSelectedInterests: React.Dispatch<React.SetStateAction<string[]>>;
-  signUp: (email: string, password: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
-  signOut: () => Promise<void>;
+  signUp: (data: any) => Promise<void>;
+  signIn: (data: any) => Promise<void>;
+  signOut: () => void;
   loading: boolean;
 }
 
@@ -23,66 +29,97 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    // Check if token exists and validate
+    const checkSession = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const res = await api.get('/auth/me');
+          setUser({
+            id: res.data._id,
+            email: res.data.email,
+            username: res.data.username,
+            full_name: res.data.full_name
+          });
+          // Fetch full profile if needed, or map from user object
+          const mappedProfile: UserProfile = {
+            id: res.data._id,
+            username: res.data.username,
+            full_name: res.data.full_name,
+            avatar_url: res.data.avatar_url,
+            selected_interests: res.data.selected_interests || [],
+            email: res.data.email
+          };
+          setProfile(mappedProfile);
+          setSelectedInterests(res.data.selected_interests || []);
 
-    // Listen for changes on auth state
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+        } catch (error) {
+          console.error('Session validation failed:', error);
+          localStorage.removeItem('token');
+          setUser(null);
+        }
+      }
       setLoading(false);
-    });
+    };
 
-    return () => subscription.unsubscribe();
+    checkSession();
   }, []);
 
-  // Fetch user profile when user changes
-  useEffect(() => {
-    if (user) {
-      fetchProfile();
-    } else {
-      setProfile(null);
-      setSelectedInterests([]);
-    }
-  }, [user]);
-
-  const fetchProfile = async () => {
+  const signUp = async (data: any) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user?.id)
-        .single();
+      const res = await api.post('/auth/signup', data);
+      const { token, user } = res.data;
+      localStorage.setItem('token', token);
+      setUser(user);
 
-      if (error) throw error;
-      setProfile(data);
-      setSelectedInterests(data.selected_interests || []);
+      // Set profile state immediately
+      const mappedProfile: UserProfile = {
+        id: user.id,
+        username: user.username,
+        full_name: user.full_name,
+        avatar_url: user.avatar_url,
+        selected_interests: user.selected_interests || [],
+        email: user.email,
+        notification_times: user.notification_times
+      };
+      setProfile(mappedProfile);
+      setSelectedInterests(user.selected_interests || []);
+
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      throw error;
     }
   };
 
-  const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-    if (error) throw error;
+  const signIn = async (data: any) => {
+    try {
+      const res = await api.post('/auth/signin', data);
+      const { token, user } = res.data;
+      localStorage.setItem('token', token);
+      setUser(user);
+
+      // Set profile state immediately
+      const mappedProfile: UserProfile = {
+        id: user.id,
+        username: user.username,
+        full_name: user.full_name,
+        avatar_url: user.avatar_url,
+        selected_interests: user.selected_interests || [],
+        email: user.email,
+        notification_times: user.notification_times
+      };
+      setProfile(mappedProfile);
+      setSelectedInterests(user.selected_interests || []);
+
+    } catch (error) {
+      throw error;
+    }
   };
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) throw error;
-  };
-
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+  const signOut = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+    setProfile(null);
+    setSelectedInterests([]);
   };
 
   return (

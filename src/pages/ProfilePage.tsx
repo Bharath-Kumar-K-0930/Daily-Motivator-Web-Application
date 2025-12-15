@@ -1,36 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import { Camera, Save } from 'lucide-react';
-import { supabase } from '../lib/supabaseClient';
+import api from '../lib/api';
 
 const ProfilePage: React.FC = () => {
   const { profile } = useAuth();
-  const [username, setUsername] = useState(profile?.username || '');
-  const [fullName, setFullName] = useState(profile?.fullName || '');
-  const [notificationTimes, setNotificationTimes] = useState<string[]>(
-    profile?.notification_times || ['04:00', '05:00', '06:00', '07:00', '10:00']
-  );
-  const [selectedInterests, setSelectedInterests] = useState<string[]>(
-    profile?.selected_interests || []
-  );
+  const [username, setUsername] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [notificationTimes, setNotificationTimes] = useState<string[]>(['04:00', '05:00', '06:00', '07:00', '10:00']);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (profile) {
+      setUsername(profile.username || '');
+      setFullName(profile.full_name || ''); // Ensure backend returns full_name and context maps it correctly
+      setNotificationTimes(profile.notification_times || ['04:00', '05:00', '06:00', '07:00', '10:00']);
+      setSelectedInterests(profile.selected_interests || []);
+      setAvatarUrl(profile.avatar_url || '');
+    }
+  }, [profile]);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error('Image size should be less than 5MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSave = async () => {
     try {
       setIsLoading(true);
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          username,
-          full_name: fullName,
-          notification_times: notificationTimes,
-          selected_interests: selectedInterests,
-        })
-        .eq('id', profile?.id);
-
-      if (error) throw error;
+      await api.put('/profile/me', {
+        username,
+        full_name: fullName,
+        notification_times: notificationTimes,
+        selected_interests: selectedInterests,
+        avatar_url: avatarUrl
+      });
       toast.success('Profile updated successfully');
+      // Ideally trigger a profile refresh in context here if not auto-updated
     } catch (error) {
       toast.error('Failed to update profile');
       console.error('Error updating profile:', error);
@@ -49,7 +69,7 @@ const ProfilePage: React.FC = () => {
   ];
 
   return (
-    <div className="container-custom py-8" style={{paddingTop : "70px" , maxWidth : "100%"}}>
+    <div className="container-custom py-8" style={{ paddingTop: "70px", maxWidth: "100%" }}>
       <h1 className="text-3xl font-bold mb-8">Profile Settings</h1>
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
@@ -57,20 +77,30 @@ const ProfilePage: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <div className="w-24 h-24 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                {profile?.avatar_url ? (
+              <div className="w-24 h-24 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center overflow-hidden">
+                {avatarUrl ? (
                   <img
-                    src={profile.avatar_url}
-                    alt={profile.username || 'Profile'}
+                    src={avatarUrl}
+                    alt={username || 'Profile'}
                     className="w-full h-full rounded-full object-cover"
                   />
                 ) : (
                   <Camera size={32} className="text-blue-600 dark:text-blue-400" />
                 )}
               </div>
-              <button className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors"
+              >
                 <Camera size={16} />
               </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleImageUpload}
+              />
             </div>
             <div>
               <h3 className="font-medium">Profile Picture</h3>

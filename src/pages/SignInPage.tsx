@@ -15,7 +15,7 @@ const SignInPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await signIn(email, password);
+      await signIn({ email, password });
       navigate('/home');
       toast.success('Welcome back!');
     } catch (error) {
