@@ -21,6 +21,7 @@ const ChallengesPage: React.FC = () => {
   const [availableChallenges, setAvailableChallenges] = useState<any[]>([]);
   const [userChallenges, setUserChallenges] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAvailable, setShowAvailable] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -185,9 +186,21 @@ const ChallengesPage: React.FC = () => {
         </div>
       )}
 
+      {/* Toggle Button */}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-semibold">
+          {showAvailable ? 'Available Challenges' : 'Discover More Challenges'}
+        </h2>
+        <button
+          onClick={() => setShowAvailable(!showAvailable)}
+          className="btn-primary"
+        >
+          {showAvailable ? 'Hide Available Challenges' : 'Browse All Challenges'}
+        </button>
+      </div>
+
       {/* Available Challenges */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Available Challenges</h2>
+      {showAvailable && (
         <div className="flex flex-col space-y-6">
           {availableChallenges.map((challenge: any) => (
             <div
@@ -208,7 +221,7 @@ const ChallengesPage: React.FC = () => {
             </div>
           ))}
         </div>
-      </div>
+      )}
     </div>
   );
 };

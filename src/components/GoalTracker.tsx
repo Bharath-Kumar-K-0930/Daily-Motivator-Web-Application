@@ -2,57 +2,104 @@ import React, { useState, useEffect } from 'react';
 import { Check, Plus, Trash2 } from 'lucide-react';
 import { UserGoal } from '../types';
 
+import api from '../lib/api';
+
 const GoalTracker: React.FC = () => {
-  const [goals, setGoals] = useState<UserGoal[]>(() => {
-    const savedGoals = localStorage.getItem('userGoals');
-    return savedGoals ? JSON.parse(savedGoals) : [];
-  });
-  
+  const [goals, setGoals] = useState<UserGoal[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [newGoalTitle, setNewGoalTitle] = useState('');
   const [newGoalDescription, setNewGoalDescription] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
 
-  // Save goals to localStorage whenever they change
+  // Fetch goals from API
   useEffect(() => {
-    localStorage.setItem('userGoals', JSON.stringify(goals));
-  }, [goals]);
+    fetchGoals();
+  }, []);
 
-  const handleAddGoal = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (newGoalTitle.trim() === '') return;
-    
-    const newGoal: UserGoal = {
-      id: Date.now().toString(),
-      title: newGoalTitle,
-      description: newGoalDescription,
-      completed: false,
-      createdAt: new Date().toISOString(),
-    };
-    
-    setGoals([...goals, newGoal]);
-    setNewGoalTitle('');
-    setNewGoalDescription('');
-    setIsFormOpen(false);
+  const fetchGoals = async () => {
+    try {
+      const { data } = await api.get('/goals');
+      // Map API response to frontend model if needed (usually ID is _id in Mongo)
+      const mappedGoals = data.map((g: any) => ({
+        id: g._id,
+        title: g.title,
+        description: g.description,
+        completed: g.completed,
+        createdAt: g.created_at
+      }));
+      setGoals(mappedGoals);
+    } catch (error) {
+      console.error('Error fetching goals:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const toggleGoalCompletion = (id: string) => {
+  const handleAddGoal = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (newGoalTitle.trim() === '') return;
+
+    try {
+      const { data } = await api.post('/goals', {
+        title: newGoalTitle,
+        description: newGoalDescription
+      });
+
+      const newGoal: UserGoal = {
+        id: data._id,
+        title: data.title,
+        description: data.description,
+        completed: data.completed,
+        createdAt: data.created_at,
+      };
+
+      setGoals([newGoal, ...goals]);
+      setNewGoalTitle('');
+      setNewGoalDescription('');
+      setIsFormOpen(false);
+    } catch (error) {
+      console.error('Error adding goal:', error);
+    }
+  };
+
+  const toggleGoalCompletion = async (id: string, currentStatus: boolean) => {
+    // Optimistic update
     setGoals(
-      goals.map(goal => 
+      goals.map(goal =>
         goal.id === id ? { ...goal, completed: !goal.completed } : goal
       )
     );
+
+    try {
+      await api.put(`/goals/${id}`, {
+        completed: !currentStatus
+      });
+    } catch (error) {
+      console.error('Error updating goal:', error);
+      // Revert on error
+      fetchGoals();
+    }
   };
 
-  const deleteGoal = (id: string) => {
+  const deleteGoal = async (id: string) => {
+    // Optimistic update
     setGoals(goals.filter(goal => goal.id !== id));
+
+    try {
+      await api.delete(`/goals/${id}`);
+    } catch (error) {
+      console.error('Error deleting goal:', error);
+      fetchGoals();
+    }
   };
 
   // Calculate completion stats
   const completedGoals = goals.filter(goal => goal.completed).length;
   const totalGoals = goals.length;
-  const completionPercentage = totalGoals > 0 
-    ? Math.round((completedGoals / totalGoals) * 100) 
+  const completionPercentage = totalGoals > 0
+    ? Math.round((completedGoals / totalGoals) * 100)
     : 0;
 
   return (
@@ -60,7 +107,7 @@ const GoalTracker: React.FC = () => {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">My Motivation Goals</h2>
         {!isFormOpen && (
-          <button 
+          <button
             onClick={() => setIsFormOpen(true)}
             className="btn-primary flex items-center"
           >
@@ -82,7 +129,7 @@ const GoalTracker: React.FC = () => {
             </span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-            <div 
+            <div
               className="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-out"
               style={{ width: `${completionPercentage}%` }}
             ></div>
@@ -140,7 +187,9 @@ const GoalTracker: React.FC = () => {
       )}
 
       {/* Goals list */}
-      {goals.length === 0 ? (
+      {loading ? (
+        <div className="text-center py-8 text-gray-500">Loading goals...</div>
+      ) : goals.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-gray-500 dark:text-gray-400">
             You haven't set any goals yet. Add your first goal to start tracking your progress!
@@ -149,18 +198,17 @@ const GoalTracker: React.FC = () => {
       ) : (
         <ul className="space-y-3">
           {goals.map((goal) => (
-            <li 
+            <li
               key={goal.id}
               className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 transition-all duration-300 hover:shadow-md"
             >
               <div className="flex items-start">
                 <button
-                  onClick={() => toggleGoalCompletion(goal.id)}
-                  className={`mt-1 flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center ${
-                    goal.completed 
-                      ? 'bg-green-500 border-green-500' 
-                      : 'border-gray-400 dark:border-gray-500'
-                  }`}
+                  onClick={() => toggleGoalCompletion(goal.id, goal.completed)}
+                  className={`mt-1 flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center ${goal.completed
+                    ? 'bg-green-500 border-green-500'
+                    : 'border-gray-400 dark:border-gray-500'
+                    }`}
                   aria-label={goal.completed ? "Mark as incomplete" : "Mark as complete"}
                 >
                   {goal.completed && <Check size={12} className="text-white" />}

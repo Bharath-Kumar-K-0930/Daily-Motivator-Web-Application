@@ -52,7 +52,6 @@ const BadgesPage: React.FC = () => {
   }
 
   const earnedBadges = badges.filter(badge => badge.earned_at);
-  const availableBadges = badges.filter(badge => !badge.earned_at);
 
   return (
     <div className="container-custom py-8" style={{ paddingTop: "70px", maxWidth: "100%" }}>
@@ -105,44 +104,7 @@ const BadgesPage: React.FC = () => {
         </div>
       )}
 
-      {/* Available Badges */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Available Badges</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {availableBadges.map((badge) => (
-            <div
-              key={badge.id}
-              className="bg-gray-100 dark:bg-gray-800/50 rounded-lg p-6 text-center filter grayscale"
-            >
-              <div className="mb-4 relative bg-professional-bg bg-center bg-cover rounded-full flex items-center justify-center professional-bg-gradient">
-                <img
-                  src={badge.image_url}
-                  alt={badge.name}
-                  className="w-20 h-20 object-contain opacity-50"
-                />
-                <button
-                  onClick={() => {
-                    const link = document.createElement('a');
-                    link.href = badge.image_url;
-                    link.download = `${badge.name}.png`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                  }}
-                  className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1 rounded shadow"
-                  title="Download Badge"
-                >
-                  Download
-                </button>
-              </div>
-              <h3 className="font-medium mb-2">{badge.name}</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {badge.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Available Badges section removed as per user request */}
     </div>
   );
 };
