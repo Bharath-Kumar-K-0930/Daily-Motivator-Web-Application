@@ -118,7 +118,6 @@ const seedDatabase = async () => {
 // Middleware to ensure DB connection
 app.use(async (req: Request, res: Response, next) => {
   await connectToDatabase();
-  await seedDatabase();
   next();
 });
 
@@ -236,6 +235,16 @@ app.get('/api/challenges', async (req: Request, res: Response) => {
     res.json(challenges);
   } catch (error) {
     res.status(500).json({ error: 'Error fetching challenges' });
+  }
+});
+
+// Get Quotes
+app.get('/api/quotes', async (req: Request, res: Response) => {
+  try {
+    const quotes = await Quote.find();
+    res.json(quotes);
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching quotes' });
   }
 });
 

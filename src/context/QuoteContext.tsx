@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Quote, Category } from '../types';
-import { quotes, getDailyQuote } from '../data/quotes';
+import { getDailyQuote } from '../data/quotes';
 import api from '../lib/api';
 import { useAuth } from './AuthContext';
 
@@ -19,32 +19,70 @@ const QuoteContext = createContext<QuoteContextType | undefined>(undefined);
 
 export const QuoteProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
-  const [dailyQuote, setDailyQuote] = useState<Quote>(getDailyQuote());
-  const [allQuotes, setAllQuotes] = useState<Quote[]>(quotes);
+  const [dailyQuote, setDailyQuote] = useState<Quote>(getDailyQuote()); // Init with static for immediate render
+  const [allQuotes, setAllQuotes] = useState<Quote[]>([]);
   const [favorites, setFavorites] = useState<Quote[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category>('all');
+  const [loading, setLoading] = useState(true);
 
-  // Fetch favorites from API when user logs in
+  // Initial Data Fetch
   useEffect(() => {
-    if (user) {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        // Fetch all quotes from API
+        const { data: quotesData } = await api.get('/quotes');
+        const dbQuotes = quotesData.map((q: any) => ({
+          ...q,
+          id: q._id // Ensure we use _id as id
+        }));
+        setAllQuotes(dbQuotes);
+
+        // Determine Daily Quote from DB Data to replace static one
+        if (dbQuotes.length > 0) {
+          const today = new Date();
+          const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+          const index = seed % dbQuotes.length;
+          setDailyQuote(dbQuotes[index]);
+        }
+
+      } catch (error) {
+        console.error('Error fetching quotes:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Fetch favorites when user logs in (or whenever user changes)
+  useEffect(() => {
+    if (user && allQuotes.length > 0) {
       fetchFavorites();
-    } else {
+    } else if (!user) {
       setFavorites([]);
     }
-  }, [user]);
+  }, [user, allQuotes.length]); // Depend on length to trigger after load
 
   const fetchFavorites = async () => {
     try {
       const { data } = await api.get('/favorites');
       setFavorites(data || []);
 
-      // Sync local allQuotes state with favorite status
+      // Update allQuotes isFavorite status based on fetched favorites
       if (data && data.length > 0) {
-        const favIds = new Set(data.map((fav: any) => fav.id));
+        const favIds = new Set(data.map((fav: any) => fav.id || fav._id));
         setAllQuotes(prev => prev.map(q => ({
           ...q,
           isFavorite: favIds.has(q.id)
         })));
+
+        // Also update daily quote if needed
+        setDailyQuote(prev => {
+          if (prev && favIds.has(prev.id)) return { ...prev, isFavorite: true };
+          return prev;
+        });
       }
     } catch (error) {
       console.error('Error fetching favorites:', error);
@@ -65,7 +103,7 @@ export const QuoteProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (quote && !favorites.some(fav => fav.id === id)) {
       setFavorites(prev => [...prev, { ...quote, isFavorite: true }]);
       setAllQuotes(prev => prev.map(q => q.id === id ? { ...q, isFavorite: true } : q));
-      if (dailyQuote.id === id) setDailyQuote({ ...dailyQuote, isFavorite: true });
+      setDailyQuote(prev => (prev && prev.id === id ? { ...prev, isFavorite: true } : prev));
 
       try {
         await api.post('/favorites', { quoteId: id });
@@ -83,7 +121,7 @@ export const QuoteProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Optimistic update
     setFavorites(prev => prev.filter(quote => quote.id !== id));
     setAllQuotes(prev => prev.map(q => q.id === id ? { ...q, isFavorite: false } : q));
-    if (dailyQuote.id === id) setDailyQuote({ ...dailyQuote, isFavorite: false });
+    setDailyQuote(prev => (prev && prev.id === id ? { ...prev, isFavorite: false } : prev));
 
     try {
       await api.delete(`/favorites/${id}`);
@@ -93,7 +131,6 @@ export const QuoteProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // Set the selected category
   const setCategory = (category: Category) => {
     setSelectedCategory(category);
   };
@@ -111,7 +148,7 @@ export const QuoteProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         filteredQuotes
       }}
     >
-      {children}
+      {!loading && children}
     </QuoteContext.Provider>
   );
 };

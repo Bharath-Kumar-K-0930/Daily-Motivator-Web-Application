@@ -14,6 +14,7 @@ import UserChallenge from '../models/UserChallenge';
 import Quote from '../models/Quote';
 import Badge from '../models/Badge';
 import UserBadge from '../models/UserBadge';
+import { quotes } from './quotesData';
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/Daily-Motivator-Web-DataBase';
 
@@ -53,14 +54,7 @@ const seed = async () => {
 
         // --- Quotes ---
         console.log('Seeding Quotes...');
-        const quotes = [
-            { text: 'The only way to do great work is to love what you do.', author: 'Steve Jobs', category: 'success' },
-            { text: 'Believe you can and you\'re halfway there.', author: 'Theodore Roosevelt', category: 'personal-growth' },
-            { text: 'Health is the greatest gift.', author: 'Buddha', category: 'health' },
-            { text: 'Happiness depends upon ourselves.', author: 'Aristotle', category: 'relationships' },
-            { text: 'Your time is limited, don\'t waste it living someone else\'s life.', author: 'Steve Jobs', category: 'success' },
-            { text: 'The journey of a thousand miles begins with one step.', author: 'Lao Tzu', category: 'personal-growth' }
-        ];
+        // Imported quotes from quotesData.ts
         await Quote.insertMany(quotes);
         console.log(`${quotes.length} Quotes inserted.`);
 
