@@ -18,6 +18,11 @@ const app = express();
 const port = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'; // Add to .env in Vercel
 
+// Health Check - Place BEFORE any DB connection middleware
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date() });
+});
+
 // Extend Request type to include user
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -118,8 +123,15 @@ const seedDatabase = async () => {
 
 // Middleware to ensure DB connection
 app.use(async (req: Request, res: Response, next) => {
-  await connectToDatabase();
-  next();
+  if (req.path === '/api/health') return next(); // Skip DB check for health endpoint
+
+  try {
+    await connectToDatabase();
+    next();
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    res.status(500).json({ error: 'Database connection failed', details: error instanceof Error ? error.message : String(error) });
+  }
 });
 
 // --- Auth Routes ---
