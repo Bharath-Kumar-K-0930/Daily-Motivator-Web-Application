@@ -23,6 +23,29 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date() });
 });
 
+// Debug DB Connection
+app.get('/api/debug-db', async (req, res) => {
+  try {
+    const state = mongoose.connection.readyState;
+    const states = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+
+    // Mask the URI but show the host and DB name
+    const uri = process.env.MONGODB_URI || 'not-set';
+    const sanitizedUri = uri.includes('@') ? `mongodb+srv://*****@${uri.split('@')[1]}` : 'local/hidden';
+
+    res.json({
+      isConnected: state === 1,
+      state: states[state] || 'unknown',
+      dbName: mongoose.connection.name,
+      host: mongoose.connection.host,
+      sanitizedUri: sanitizedUri, // Be careful showing this, but sanitized
+      envVarExists: !!process.env.MONGODB_URI
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error checking DB status', details: error instanceof Error ? error.message : String(error) });
+  }
+});
+
 // Extend Request type to include user
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -64,7 +87,7 @@ const connectToDatabase = async () => {
 
   try {
     const db = await mongoose.connect(mongoURI);
-    console.log('MongoDB connected');
+    console.log(`MongoDB connected to: ${db.connection.name}`);
     cachedDb = db;
     return db;
   } catch (err) {
