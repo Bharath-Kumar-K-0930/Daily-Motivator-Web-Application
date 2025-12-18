@@ -3,15 +3,16 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import User from './models/User';
-import Challenge from './models/Challenge';
-import UserChallenge from './models/UserChallenge';
-import Quote from './models/Quote';
-import Badge from './models/Badge';
-import UserBadge from './models/UserBadge';
-import Goal from './models/Goal';
-import UserFavorite from './models/UserFavorite';
+import User from './models/User.js';
+import Challenge from './models/Challenge.js';
+import UserChallenge from './models/UserChallenge.js';
+import Quote from './models/Quote.js';
+import Badge from './models/Badge.js';
+import UserBadge from './models/UserBadge.js';
+import Goal from './models/Goal.js';
+import UserFavorite from './models/UserFavorite.js';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -547,7 +548,9 @@ app.delete('/api/favorites/:quoteId', authenticateToken, async (req: Authenticat
 
 // --- Vercel Export ---
 // Only listen if running locally/standalone
-if (require.main === module) {
+// Only listen if running locally/standalone
+const __filename = fileURLToPath(import.meta.url);
+if (process.argv[1] === __filename) {
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
   });

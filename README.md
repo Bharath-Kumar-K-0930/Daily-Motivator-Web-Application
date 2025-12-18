@@ -84,6 +84,25 @@ A full-stack web application designed to help users build positive habits throug
     *   For **Dynamic Challenges**, join via the dashboard and track progress directly.
 4.  **View Progress**: Check "My Challenges" to see all your active challenges in one place.
 
+
+## Deployment
+
+When deploying to Vercel, you must configure your Environment Variables in the Vercel Dashboard.
+
+**CRITICAL: Use a Cloud Database**
+Localhost (`mongodb://localhost...`) will **NOT** work on Vercel. You must use a cloud provider like **MongoDB Atlas**.
+
+### Vercel Environment Variables
+Set these variables in your Vercel Project Settings > Environment Variables:
+
+| Variable | Value Description |
+| :--- | :--- |
+| `MONGODB_URI` | Your MongoDB Atlas Connection String (starts with `mongodb+srv://...`). |
+| `JWT_SECRET` | A long, random string for security (do not use default). |
+| `VITE_API_URL` | **LEAVE EMPTY**. Do NOT set this on Vercel. The app automatically handles it. |
+
+**Note**: Since we deploy both frontend and backend on the same Vercel instance using serverless functions, omitting `VITE_API_URL` ensures the frontend uses the relative `/api` path correctly.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
